@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getChainById } from "@/lib/chains";
 import { TokenBalance } from "@/lib/blockchain";
-import { useWallets } from "@privy-io/react-auth";
+import { useWallets, useSendTransaction } from "@privy-io/react-auth";
 import { parseEther, parseUnits } from "viem";
 
 interface SendModalProps {
@@ -35,6 +35,7 @@ export default function SendModal({
 
   const chain = getChainById(chainId);
   const { wallets } = useWallets();
+  const { sendTransaction } = useSendTransaction();
 
   useEffect(() => {
     // Validate Ethereum address
@@ -71,14 +72,12 @@ export default function SendModal({
   };
 
   const handleSendTransaction = async () => {
-    if (!selectedToken || !recipientAddress || !amount || !wallets.length) return;
+    if (!selectedToken || !recipientAddress || !amount) return;
     
     setIsLoading(true);
     setTxHash(null);
     
     try {
-      const wallet = wallets[0]; // Use the first (smart) wallet
-      
       // Prepare transaction parameters
       let txParams;
       
@@ -104,11 +103,10 @@ export default function SendModal({
         to: recipientAddress,
         amount: amount,
         chain: chainId,
-        wallet: wallet.address,
       });
       
-      // Send transaction using Privy smart wallet
-      const txResponse = await wallet.sendTransaction(txParams);
+      // Send transaction using Privy's useSendTransaction hook
+      const txResponse = await sendTransaction(txParams);
       
       console.log('Transaction sent:', txResponse);
       setTxHash(txResponse.hash);
