@@ -7,10 +7,10 @@ export const Providers = (props: PropsWithChildren) => {
     <PrivyProvider
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''}
       config={{
-        // Login methods
+        // Login methods - supporting multiple authentication options
         loginMethods: ['email', 'sms', 'google', 'apple'],
         
-        // Appearance
+        // Appearance customization
         appearance: {
           theme: 'light',
           accentColor: '#4B66F3',
@@ -18,35 +18,14 @@ export const Providers = (props: PropsWithChildren) => {
           showWalletLoginFirst: false,
         },
         
-        // Smart wallet configuration
+        // Embedded wallet configuration for smart wallets
         embeddedWallets: {
           createOnLogin: 'all-users', // Create smart wallets for all users
           requireUserPasswordOnCreate: false,
           showWalletUIs: true,
         },
         
-        // Smart wallet settings
-        smartWallet: {
-          chains: [1], // Ethereum mainnet
-          bundlerUrl: process.env.NEXT_PUBLIC_PIMLICO_BUNDLER_URL,
-          paymasterUrl: `https://paymaster.alchemy.com/api/v1/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-          paymasterContext: {
-            policyId: process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID,
-          },
-        },
-        
-        // External wallets support
-        externalWallets: {
-          coinbaseWallet: {
-            enabled: true,
-          },
-          metamask: {
-            enabled: true,
-          },
-          walletConnect: {
-            enabled: true,
-          },
-        },
+        // External wallet support - will be auto-detected by Privy
       }}
     >
       {props.children}
