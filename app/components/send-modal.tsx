@@ -114,7 +114,10 @@ export default function SendModal({
       setTxHash(txResponse.hash);
       
       // Show success message with transaction hash
-      alert(`✅ Transaction sent!\n\n${amount} ${selectedToken.symbol} → ${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}\n\nTx Hash: ${txResponse.hash.slice(0, 10)}...`);
+      const successMessage = `✅ Transaction sent!\n\n${amount} ${selectedToken.symbol} → ` +
+        `${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}\n\n` +
+        `Tx Hash: ${txResponse.hash.slice(0, 10)}...`;
+      alert(successMessage);
       
       // Wait a moment before closing to show the hash
       setTimeout(() => {

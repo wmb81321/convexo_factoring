@@ -25,7 +25,7 @@ export default function TokenBalances({ walletAddress, chainId }: TokenBalancesP
   const chain = getChainById(chainId);
 
   // Fetch real token balances from blockchain
-  const fetchBalances = async () => {
+  const fetchBalances = useCallback(async () => {
     if (!chain || !walletAddress) return;
 
     setIsLoading(true);
@@ -47,11 +47,11 @@ export default function TokenBalances({ walletAddress, chainId }: TokenBalancesP
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [chain, walletAddress, chainId]);
 
   useEffect(() => {
     fetchBalances();
-  }, [walletAddress, chainId]);
+  }, [walletAddress, chainId, fetchBalances]);
 
   const copyToClipboard = async (text: string) => {
     try {

@@ -5,6 +5,7 @@ import { Copy, Check, X, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getChainById } from "@/lib/chains";
+import Image from "next/image";
 
 interface ReceiveModalProps {
   isOpen: boolean;
@@ -91,9 +92,11 @@ export default function ReceiveModal({
           <div className="flex justify-center">
             <div className="bg-white p-4 rounded-lg shadow-sm border">
               {qrCodeUrl ? (
-                <img
+                <Image
                   src={qrCodeUrl}
                   alt="Wallet QR Code"
+                  width={192}
+                  height={192}
                   className="w-48 h-48"
                   onError={() => setQrCodeUrl("")}
                 />
