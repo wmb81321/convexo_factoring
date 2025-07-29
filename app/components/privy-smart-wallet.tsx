@@ -47,7 +47,7 @@ export default function PrivySmartWallet() {
               🎉 Welcome to the Future of Web3!
             </h3>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Your smart wallet is now active with gasless transactions powered by Alchemy on Ethereum mainnet.
+              Your smart wallet is now active with gasless transactions powered by Alchemy on Sepolia testnet.
             </p>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
@@ -55,7 +55,7 @@ export default function PrivySmartWallet() {
                 <ul className="space-y-1 text-gray-600 dark:text-gray-400">
                   <li>• Gasless transactions (sponsored)</li>
                   <li>• Social & email authentication</li>
-                  <li>• Ethereum mainnet support</li>
+                  <li>• Sepolia testnet support</li>
                   <li>• Account abstraction enabled</li>
                 </ul>
               </div>
@@ -64,7 +64,7 @@ export default function PrivySmartWallet() {
                 <ul className="space-y-1 text-gray-600 dark:text-gray-400">
                   <li>• Bundler: Pimlico</li>
                   <li>• Paymaster: Alchemy</li>
-                  <li>• Network: Ethereum (Chain ID: 1)</li>
+                  <li>• Network: Sepolia (Chain ID: 11155111)</li>
                   <li>• Provider: Privy</li>
                 </ul>
               </div>
@@ -137,7 +137,7 @@ export default function PrivySmartWallet() {
                       Chain ID
                     </label>
                     <div className="p-2 bg-white dark:bg-gray-700 rounded border text-sm">
-                      {embeddedWallet.chainId || '1 (Ethereum)'}
+                      {embeddedWallet.chainId || '11155111 (Sepolia)'}
                     </div>
                   </div>
                   <div>
@@ -162,9 +162,9 @@ export default function PrivySmartWallet() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(`https://etherscan.io/address/${embeddedWallet.address}`, '_blank')}
+                    onClick={() => window.open(`https://sepolia.etherscan.io/address/${embeddedWallet.address}`, '_blank')}
                   >
-                    View on Etherscan
+                    View on Sepolia Etherscan
                   </Button>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export default function PrivySmartWallet() {
                 <li>✅ Privy authentication</li>
                 <li>✅ Smart wallet creation</li>
                 <li>✅ Alchemy gas sponsorship</li>
-                <li>✅ Ethereum mainnet ready</li>
+                <li>✅ Sepolia testnet support</li>
               </ul>
             </div>
           </div>

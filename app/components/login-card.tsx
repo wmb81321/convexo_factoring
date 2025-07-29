@@ -1,75 +1,85 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { usePrivy } from "@privy-io/react-auth";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { useAuthModal } from "@account-kit/react";
 
-export default function LoginPage() {
-  const { openAuthModal } = useAuthModal();
+export default function LoginCard() {
+  const { login, ready } = usePrivy();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  return (
-    <Card
-      className={cn(
-        "relative w-full max-w-md shadow-xl border border-gray-200/50",
-        "bg-white/70 dark:bg-gray-900/70 backdrop-blur-md",
-        "hover:shadow-2xl transition-all duration-300"
-      )}
-    >
-      <CardHeader className={cn("text-center space-y-4 pb-8")}>
-        <div className="flex justify-center mb-4">
-          <div className="text-6xl">🚀</div>
-        </div>
-        <CardTitle
-          className={cn(
-            "text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600",
-            "dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent"
-          )}
-        >
-          Convexo Wallet
-        </CardTitle>
-        <CardDescription
-          className={cn("text-base text-gray-600 dark:text-gray-400")}
-        >
-          Experience the future of web3 with gasless transactions, social login, and seamless UX. 
-          Login to get started.
-        </CardDescription>
-      </CardHeader>
+  const handleLogin = async () => {
+    if (!ready) return;
+    
+    setIsLoggingIn(true);
+    try {
+      await login();
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
-      <CardContent className={cn("space-y-6 pb-8")}>
-        <Button
-          size="lg"
-          onClick={() => openAuthModal()}
-          disabled={isLoggingIn}
-          className={cn(
-            "w-full h-12 text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600",
-            "hover:from-blue-700 hover:to-purple-700 border-0 shadow-lg hover:shadow-xl",
-            "text-white transition-all duration-200"
-          )}
-        >
-          {isLoggingIn ? (
-            <>
-              <Loader2 className={cn("animate-spin -ml-1 mr-3 h-5 w-5")} />
-              Connecting...
-            </>
-          ) : (
-            <>Connect Smart Wallet</>
-          )}
-        </Button>
-        
-        <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-          🔐 Email • 🔑 Passkey • 🌐 Social Login
-        </div>
-      </CardContent>
-    </Card>
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center p-6">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
+            <span className="text-2xl">🚀</span>
+          </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Convexo Wallet
+          </CardTitle>
+          <CardDescription className="text-base">
+            Experience next-generation smart wallets with gasless transactions on Sepolia testnet
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
+            <h3 className="font-semibold text-center">🎯 Smart Wallet Features</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                <span>Gasless transactions (sponsored)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                <span>Social & email authentication</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                <span>Account abstraction (ERC-4337)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">✅</span>
+                <span>Sepolia testnet ready</span>
+              </li>
+            </ul>
+          </div>
+          
+          <Button
+            onClick={handleLogin}
+            disabled={isLoggingIn || !ready}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            size="lg"
+          >
+            {isLoggingIn ? (
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                <span>Connecting...</span>
+              </div>
+            ) : (
+              "Connect Smart Wallet"
+            )}
+          </Button>
+          
+          <div className="text-center text-xs text-gray-500">
+            Powered by Privy • Sponsored by Alchemy
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
