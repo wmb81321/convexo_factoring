@@ -4,9 +4,16 @@ import { SmartWalletsProvider } from '@privy-io/react-auth/smart-wallets';
 import { PropsWithChildren } from "react";
 
 export const Providers = (props: PropsWithChildren) => {
+  const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+  
+  // Don't render PrivyProvider during build if no app ID
+  if (!privyAppId) {
+    return <>{props.children}</>;
+  }
+
   return (
     <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''}
+      appId={privyAppId}
       config={{
         // Login methods - supporting multiple authentication options
         loginMethods: ['email', 'sms', 'google', 'apple'],
@@ -75,7 +82,14 @@ export const Providers = (props: PropsWithChildren) => {
         // External wallet support - will be auto-detected by Privy
       }}
     >
-      <SmartWalletsProvider>
+      <SmartWalletsProvider
+        config={{
+                  // Alchemy Gas Manager configuration for proper sponsorship
+        paymasterContext: {
+          policyId: process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID || '5c1f3503-0f13-4109-8559-e04e27f55239',
+        },
+        }}
+      >
         {props.children}
       </SmartWalletsProvider>
     </PrivyProvider>

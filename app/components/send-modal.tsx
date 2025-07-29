@@ -8,6 +8,7 @@ import { getChainById } from "@/lib/chains";
 import { TokenBalance } from "@/lib/blockchain";
 import { useWallets, useSendTransaction } from "@privy-io/react-auth";
 import { parseEther, parseUnits } from "viem";
+import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
 
 interface SendModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export default function SendModal({
   const chain = getChainById(chainId);
   const { wallets } = useWallets();
   const { sendTransaction } = useSendTransaction();
+  const { sendSponsoredTransaction, status: sponsorshipStatus, reset: resetSponsorship } = useSponsoredTransactions();
 
   useEffect(() => {
     // Validate Ethereum address
@@ -53,6 +55,7 @@ export default function SendModal({
 
   const handleClose = () => {
     resetModal();
+    resetSponsorship();
     onClose();
   };
 
@@ -76,45 +79,40 @@ export default function SendModal({
     
     setIsLoading(true);
     setTxHash(null);
+    resetSponsorship();
     
     try {
-      // Prepare transaction parameters
-      let txParams;
-      
-      if (selectedToken.symbol === 'ETH') {
-        // Native ETH transfer
-        txParams = {
-          to: recipientAddress as `0x${string}`,
-          value: parseEther(amount),
-        };
-      } else {
-        // ERC-20 token transfer
-        const tokenAmount = parseUnits(amount, selectedToken.symbol === 'USDC' ? 6 : 18);
-        
-        // ERC-20 transfer function call
-        txParams = {
-          to: selectedToken.contract as `0x${string}`,
-          data: `0xa9059cbb${recipientAddress.slice(2).padStart(64, '0')}${tokenAmount.toString(16).padStart(64, '0')}` as `0x${string}`,
-        };
-      }
-      
-      console.log('Sending transaction:', {
+      console.log('🚀 Attempting sponsored transaction:', {
         token: selectedToken.symbol,
         to: recipientAddress,
         amount: amount,
         chain: chainId,
       });
+
+      // Use the new sponsored transaction flow
+      await sendSponsoredTransaction({
+        recipient: recipientAddress,
+        amount: amount,
+        tokenAddress: selectedToken.symbol === 'ETH' ? undefined : selectedToken.contract,
+        decimals: selectedToken.symbol === 'USDC' ? 6 : 18,
+        chainId: chainId,
+      });
+
+      // Get transaction hash from sponsorship status
+      const transactionHash = sponsorshipStatus.transactionHash;
+      if (transactionHash) {
+        setTxHash(transactionHash);
+      }
+
+      // Show success message with sponsorship info
+      const sponsorshipText = sponsorshipStatus.isSponsored 
+        ? '🎉 GASLESS TRANSACTION!' 
+        : '⚠️ User paid gas';
+
+      const successMessage = `✅ Transaction sent!\n\n${sponsorshipText}\n\n${amount} ${selectedToken.symbol} → ` +
+        `${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}` +
+        (transactionHash ? `\n\nTx Hash: ${transactionHash.slice(0, 10)}...` : '');
       
-      // Send transaction using Privy's useSendTransaction hook
-      const txResponse = await sendTransaction(txParams);
-      
-      console.log('Transaction sent:', txResponse);
-      setTxHash(txResponse.hash);
-      
-      // Show success message with transaction hash
-      const successMessage = `✅ Transaction sent!\n\n${amount} ${selectedToken.symbol} → ` +
-        `${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}\n\n` +
-        `Tx Hash: ${txResponse.hash.slice(0, 10)}...`;
       alert(successMessage);
       
       // Wait a moment before closing to show the hash
@@ -123,7 +121,7 @@ export default function SendModal({
       }, 2000);
       
     } catch (error) {
-      console.error('Transaction failed:', error);
+      console.error('❌ Transaction failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       alert(`❌ Transaction failed:\n\n${errorMessage}\n\nPlease check your balance and try again.`);
     } finally {
