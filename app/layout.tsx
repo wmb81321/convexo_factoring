@@ -9,8 +9,20 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Account Kit Quickstart",
-  description: "Account Kit Quickstart NextJS Template",
+  title: "Convexo Wallet - Smart Web3 Wallet",
+  description: "Next-generation web3 wallet with gasless transactions, social login, and seamless UX. Built with Alchemy Account Kit on Optimism.",
+  keywords: ["web3", "wallet", "smart wallet", "gasless", "optimism", "ethereum", "convexo"],
+  authors: [{ name: "Convexo Team" }],
+  openGraph: {
+    title: "Convexo Wallet - Smart Web3 Wallet",
+    description: "Experience the future of web3 with gasless transactions and social login",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Convexo Wallet",
+    description: "Next-generation smart wallet for web3",
+  },
 };
 
 export default function RootLayout({

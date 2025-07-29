@@ -3,7 +3,7 @@ import {
   cookieStorage,
   createConfig,
 } from "@account-kit/react";
-import { alchemy, arbitrumSepolia } from "@account-kit/infra";
+import { alchemy, optimism } from "@account-kit/infra";
 import { QueryClient } from "@tanstack/react-query";
 
 const API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
@@ -34,11 +34,11 @@ const uiConfig: AlchemyAccountsUIConfig = {
 export const config = createConfig(
   {
     transport: alchemy({ apiKey: API_KEY }),
-    // Note: This quickstart is configured for Arbitrum Sepolia.
-    chain: arbitrumSepolia,
-    ssr: true, // more about ssr: https://www.alchemy.com/docs/wallets/react/ssr
-    storage: cookieStorage, // more about persisting state with cookies: https://www.alchemy.com/docs/wallets/react/ssr#persisting-the-account-state
-    enablePopupOauth: true, // must be set to "true" if you plan on using popup rather than redirect in the social login flow
+    // Configured for Optimism Mainnet for Convexo
+    chain: optimism,
+    ssr: true,
+    storage: cookieStorage,
+    enablePopupOauth: true,
     policyId: SPONSORSHIP_POLICY_ID,
   },
   uiConfig
