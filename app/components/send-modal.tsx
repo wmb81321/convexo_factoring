@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getChainById } from "@/lib/chains";
 import { TokenBalance } from "@/lib/blockchain";
+import { useWallets } from "@privy-io/react-auth";
+import { parseEther, parseUnits } from "viem";
 
 interface SendModalProps {
   isOpen: boolean;
@@ -29,8 +31,10 @@ export default function SendModal({
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [isValidAddress, setIsValidAddress] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
 
   const chain = getChainById(chainId);
+  const { wallets } = useWallets();
 
   useEffect(() => {
     // Validate Ethereum address
@@ -67,27 +71,60 @@ export default function SendModal({
   };
 
   const handleSendTransaction = async () => {
-    if (!selectedToken || !recipientAddress || !amount) return;
+    if (!selectedToken || !recipientAddress || !amount || !wallets.length) return;
     
     setIsLoading(true);
+    setTxHash(null);
+    
     try {
-      // Here you would implement the actual transaction sending logic
-      // For now, we'll simulate it
+      const wallet = wallets[0]; // Use the first (smart) wallet
+      
+      // Prepare transaction parameters
+      let txParams;
+      
+      if (selectedToken.symbol === 'ETH') {
+        // Native ETH transfer
+        txParams = {
+          to: recipientAddress as `0x${string}`,
+          value: parseEther(amount),
+        };
+      } else {
+        // ERC-20 token transfer
+        const tokenAmount = parseUnits(amount, selectedToken.symbol === 'USDC' ? 6 : 18);
+        
+        // ERC-20 transfer function call
+        txParams = {
+          to: selectedToken.contract as `0x${string}`,
+          data: `0xa9059cbb${recipientAddress.slice(2).padStart(64, '0')}${tokenAmount.toString(16).padStart(64, '0')}` as `0x${string}`,
+        };
+      }
+      
       console.log('Sending transaction:', {
         token: selectedToken.symbol,
         to: recipientAddress,
         amount: amount,
         chain: chainId,
+        wallet: wallet.address,
       });
       
-      // Simulate transaction delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Send transaction using Privy smart wallet
+      const txResponse = await wallet.sendTransaction(txParams);
       
-      alert(`Transaction sent! ${amount} ${selectedToken.symbol} to ${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}`);
-      handleClose();
+      console.log('Transaction sent:', txResponse);
+      setTxHash(txResponse.hash);
+      
+      // Show success message with transaction hash
+      alert(`✅ Transaction sent!\n\n${amount} ${selectedToken.symbol} → ${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}\n\nTx Hash: ${txResponse.hash.slice(0, 10)}...`);
+      
+      // Wait a moment before closing to show the hash
+      setTimeout(() => {
+        handleClose();
+      }, 2000);
+      
     } catch (error) {
       console.error('Transaction failed:', error);
-      alert('Transaction failed. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`❌ Transaction failed:\n\n${errorMessage}\n\nPlease check your balance and try again.`);
     } finally {
       setIsLoading(false);
     }

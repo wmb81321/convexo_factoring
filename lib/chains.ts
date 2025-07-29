@@ -71,7 +71,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
     pimlicoBundlerUrl: "https://public.pimlico.io/v2/1301/rpc",
     tokens: {
       usdc: {
-        address: "0x078d782b760474a361dda0af3839290b0ef57ad6",
+        address: "0x31d0220469e10c4E71834a79b1f276d740d3768F",
         symbol: "USDC",
         name: "USD Coin",
         decimals: 6,
