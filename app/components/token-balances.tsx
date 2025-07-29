@@ -89,6 +89,7 @@ export default function TokenBalances({ walletAddress, chainId }: TokenBalancesP
   }
 
   return (
+    <>
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="text-lg font-semibold">Token Balances</CardTitle>
