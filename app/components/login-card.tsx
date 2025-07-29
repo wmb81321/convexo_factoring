@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export default function LoginCard() {
   const { login, ready } = usePrivy();
@@ -23,63 +24,91 @@ export default function LoginCard() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
-            <span className="text-2xl">🚀</span>
+    <Card className="w-full max-w-md glass-card hover-lift transition-institutional">
+      <CardHeader className="text-center pb-6">
+        {/* Professional Convexo Logo */}
+        <div className="mx-auto mb-6 relative">
+          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 p-2 shadow-lg">
+            <Image
+              src="/convexo-logo.png"
+              alt="Convexo Logo"
+              width={48}
+              height={48}
+              className="object-contain w-full h-full"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        </div>
+        
+        <CardTitle className="text-3xl font-bold heading-institutional mb-2">
+          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Convexo Wallet
-          </CardTitle>
-          <CardDescription className="text-base">
-            Experience next-generation smart wallets with gasless transactions on Sepolia testnet
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <h3 className="font-semibold text-center">🎯 Smart Wallet Features</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-center gap-2">
-                <span className="text-green-500">✅</span>
-                <span>Gasless transactions (sponsored)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-green-500">✅</span>
-                <span>Social & email authentication</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-green-500">✅</span>
-                <span>Account abstraction (ERC-4337)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-green-500">✅</span>
-                <span>Sepolia testnet ready</span>
-              </li>
-            </ul>
+          </span>
+        </CardTitle>
+        
+        <CardDescription className="text-base text-institutional-light leading-relaxed">
+          Experience next-generation smart wallets with gasless transactions and institutional-grade security
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {/* Professional Features List */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-center heading-institutional text-lg">
+            🏛️ Institutional Features
+          </h3>
+          <div className="grid gap-3">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50/50 dark:bg-green-900/10 border border-green-200/30">
+              <span className="text-green-600 text-lg">✅</span>
+              <span className="text-sm font-medium text-institutional">
+                Gas-sponsored transactions
+              </span>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/30">
+              <span className="text-blue-600 text-lg">🔐</span>
+              <span className="text-sm font-medium text-institutional">
+                Enterprise-grade security
+              </span>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50/50 dark:bg-purple-900/10 border border-purple-200/30">
+              <span className="text-purple-600 text-lg">🌐</span>
+              <span className="text-sm font-medium text-institutional">
+                Multi-chain support
+              </span>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-50/50 dark:bg-orange-900/10 border border-orange-200/30">
+              <span className="text-orange-600 text-lg">📱</span>
+              <span className="text-sm font-medium text-institutional">
+                Social & email authentication
+              </span>
+            </div>
           </div>
-          
+        </div>
+
+        {/* Professional Call to Action */}
+        <div className="space-y-4 pt-2">
           <Button
             onClick={handleLogin}
-            disabled={isLoggingIn || !ready}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            size="lg"
+            disabled={!ready || isLoggingIn}
+            className="w-full btn-institutional h-12 text-base font-semibold transition-institutional rounded-xl"
           >
             {isLoggingIn ? (
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                <span>Connecting...</span>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Connecting Wallet...
               </div>
             ) : (
-              "Connect Smart Wallet"
+              <div className="flex items-center gap-2">
+                <span>🚀</span>
+                Connect Smart Wallet
+              </div>
             )}
           </Button>
           
-          <div className="text-center text-xs text-gray-500">
-            Powered by Privy • Sponsored by Alchemy
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          <p className="text-xs text-center text-institutional-light">
+            Powered by Alchemy Gas Manager & Privy Smart Wallets
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

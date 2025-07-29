@@ -97,20 +97,36 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Favicon files */}
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        {/* Primary Favicon - Using Convexo Logo */}
+        <link rel="icon" href="/convexo-logo.png" type="image/png" />
+        <link rel="shortcut icon" href="/convexo-logo.png" type="image/png" />
+        
+        {/* Multiple sizes for different devices */}
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon_io/favicon-16x16.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon_io/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon_io/android-chrome-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/favicon_io/android-chrome-512x512.png" />
+        
+        {/* Apple Touch Icon */}
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon_io/apple-touch-icon.png" />
         
-        {/* PWA meta tags */}
+        {/* Fallback ICO */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        
+        {/* PWA and Mobile Meta Tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Convexo" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#4B66F3" />
+        <meta name="msapplication-TileColor" content="#4B66F3" />
+        <meta name="msapplication-navbutton-color" content="#4B66F3" />
+        
+        {/* Professional Brand Meta */}
+        <meta name="application-name" content="Convexo Wallet" />
+        <meta name="apple-mobile-web-app-title" content="Convexo Wallet" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} institutional-bg`}>
         <Providers>{children}</Providers>
         <script
           dangerouslySetInnerHTML={{
