@@ -2,6 +2,12 @@ const CACHE_NAME = 'convexo-wallet-v1';
 const urlsToCache = [
   '/',
   '/manifest.json',
+  '/favicon.ico',
+  '/favicon_io/favicon-16x16.png',
+  '/favicon_io/favicon-32x32.png',
+  '/favicon_io/apple-touch-icon.png',
+  '/favicon_io/android-chrome-192x192.png',
+  '/favicon_io/android-chrome-512x512.png',
   '/convexo-logo.png',
   '/bg-main.webp',
   '/smart-wallets.svg',
