@@ -223,6 +223,7 @@ Need help? Contact:
 - 💬 **Discord**: [Convexo Community](https://discord.gg/convexo)
 - 🐦 **Twitter**: [@ConvexoFinance](https://twitter.com/ConvexoFinance)
 
+
 ---
 
 **🎉 Congratulations! Your Convexo Smart Wallet is now ready for gasless transactions on Ethereum mainnet!** 
