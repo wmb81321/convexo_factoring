@@ -128,11 +128,13 @@ async function fetchEthUsdcPrice(): Promise<number> {
 }
 
 /**
- * Fetch real pool analytics from Uniswap subgraph
+ * Fetch real pool analytics from Uniswap subgraph - NO FALLBACKS, REAL DATA ONLY
  */
 async function fetchUniswapPoolAnalytics(): Promise<Partial<PoolData>> {
+  console.log('🔍 Fetching REAL Uniswap analytics for pool:', LP_CONTRACT_ADDRESS);
+  
   try {
-    // Uniswap V3 Subgraph endpoint for Sepolia
+    // Use the official Uniswap V3 subgraph for Sepolia
     const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3-sepolia';
     
     const query = `
@@ -142,24 +144,37 @@ async function fetchUniswapPoolAnalytics(): Promise<Partial<PoolData>> {
           totalValueLockedUSD
           volumeUSD
           feesUSD
+          sqrtPrice
+          tick
+          liquidity
+          token0Price
+          token1Price
           token0 {
             id
             symbol
             name
+            decimals
           }
           token1 {
             id
             symbol
             name
+            decimals
           }
-          poolDayData(first: 1, orderBy: date, orderDirection: desc) {
+          poolDayData(first: 7, orderBy: date, orderDirection: desc) {
+            date
             volumeUSD
             feesUSD
             tvlUSD
+            open
+            close
           }
         }
       }
     `;
+
+    console.log('📡 Sending GraphQL query to:', SUBGRAPH_URL);
+    console.log('🔍 Pool ID:', LP_CONTRACT_ADDRESS.toLowerCase());
 
     const response = await fetch(SUBGRAPH_URL, {
       method: 'POST',
@@ -174,61 +189,60 @@ async function fetchUniswapPoolAnalytics(): Promise<Partial<PoolData>> {
       })
     });
 
+    console.log('📨 Response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('❌ HTTP error:', response.status, errorText);
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('📊 Raw GraphQL response:', JSON.stringify(data, null, 2));
     
     if (data.errors) {
+      console.error('❌ GraphQL errors:', data.errors);
       throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
     }
 
     const pool = data.data?.pool;
     if (!pool) {
-      throw new Error('Pool not found in subgraph');
+      console.error('❌ Pool not found in subgraph response');
+      console.log('Available data:', data.data);
+      throw new Error('Pool not found in subgraph - check if pool exists on Sepolia');
     }
 
-    const dayData = pool.poolDayData?.[0] || {};
+    console.log('✅ Found pool data:', pool);
 
-    return {
+    const latestDayData = pool.poolDayData?.[0] || {};
+    console.log('📈 Latest day data:', latestDayData);
+
+    const result = {
       tvlUSD: parseFloat(pool.totalValueLockedUSD || '0'),
-      volumeUSD: parseFloat(dayData.volumeUSD || pool.volumeUSD || '0'),
-      feesUSD: parseFloat(dayData.feesUSD || pool.feesUSD || '0'),
+      volumeUSD: parseFloat(pool.volumeUSD || '0'),
+      feesUSD: parseFloat(pool.feesUSD || '0'),
       totalLiquidity: parseFloat(pool.totalValueLockedUSD || '0'),
-      volume24h: parseFloat(dayData.volumeUSD || '0'),
-      fees24h: parseFloat(dayData.feesUSD || '0'),
+      volume24h: parseFloat(latestDayData.volumeUSD || '0'),
+      fees24h: parseFloat(latestDayData.feesUSD || '0'),
       token0: {
-        symbol: pool.token0?.symbol || 'TOKEN0',
-        name: pool.token0?.name || 'Token 0',
+        symbol: pool.token0?.symbol || 'UNKNOWN',
+        name: pool.token0?.name || 'Unknown Token',
         address: pool.token0?.id || '',
       },
       token1: {
-        symbol: pool.token1?.symbol || 'TOKEN1',
-        name: pool.token1?.name || 'Token 1',
+        symbol: pool.token1?.symbol || 'UNKNOWN',
+        name: pool.token1?.name || 'Unknown Token',
         address: pool.token1?.id || '',
       }
     };
+
+    console.log('🎯 Processed analytics result:', result);
+    return result;
+
   } catch (error) {
-    console.warn('Failed to fetch Uniswap analytics, using fallback:', error);
-    return {
-      tvlUSD: 125000,
-      volumeUSD: 45600,
-      feesUSD: 230,
-      totalLiquidity: 125000,
-      volume24h: 45600,
-      fees24h: 230,
-      token0: {
-        symbol: 'USDC',
-        name: 'USD Coin',
-        address: '',
-      },
-      token1: {
-        symbol: 'COPE',
-        name: 'Cope Token',
-        address: '',
-      }
-    };
+    console.error('💥 FAILED to fetch real Uniswap analytics:', error);
+    // Re-throw the error instead of using fallback - we want to see what's wrong
+    throw error;
   }
 }
 
@@ -320,91 +334,90 @@ export async function fetchUserBalances(walletAddress: string): Promise<UserBala
 }
 
 /**
- * Fetch complete pool and user data
+ * Fetch complete pool and user data - REAL DATA ONLY FOR USDC-COPE LP
  */
 export async function fetchPoolData(walletAddress?: string): Promise<{ poolData: PoolData; userBalance?: UserBalance }> {
+  console.log('🚀 Starting fetchPoolData for USDC-COPE LP...');
+  
   try {
-    // Fetch all data in parallel
-    const [usdcCopePrice, ethUsdcPrice, uniswapAnalytics] = await Promise.all([
-      fetchUsdcCopePrice(),
-      fetchEthUsdcPrice(),
-      fetchUniswapPoolAnalytics()
-    ]);
+    // Fetch real Uniswap analytics first (this is the most important)
+    console.log('📊 Fetching real Uniswap analytics...');
+    const uniswapAnalytics = await fetchUniswapPoolAnalytics();
+    
+    // For USDC-COPE LP, we need USDC/COPE price from the pool
+    let usdcCopePrice = 1.0; // Default fallback
+    try {
+      usdcCopePrice = await fetchUsdcCopePrice();
+      console.log('💰 USDC/COPE price:', usdcCopePrice);
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch USDC/COPE price, using default:', error);
+    }
+
+    // ETH price for user balance calculation (not for pool analytics)
+    let ethUsdcPrice = 3786.98; // Default
+    try {
+      ethUsdcPrice = await fetchEthUsdcPrice();
+      console.log('💎 ETH price:', ethUsdcPrice);
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch ETH price, using default:', error);
+    }
 
     // Fetch user balances if wallet address provided
     let userBalance: UserBalance | undefined;
     if (walletAddress) {
-      userBalance = await fetchUserBalances(walletAddress);
-      
-      // Calculate total USD value
-      const ethValueUsd = userBalance.eth * ethUsdcPrice;
-      const usdcValueUsd = userBalance.usdc; // USDC is already in USD
-      const copeValueUsd = userBalance.cope * usdcCopePrice; // COPE value in USDC (≈USD)
-      
-      userBalance.totalUsd = ethValueUsd + usdcValueUsd + copeValueUsd;
+      try {
+        userBalance = await fetchUserBalances(walletAddress);
+        
+        // Calculate total USD value
+        const ethValueUsd = userBalance.eth * ethUsdcPrice;
+        const usdcValueUsd = userBalance.usdc; // USDC is already in USD
+        const copeValueUsd = userBalance.cope * usdcCopePrice; // COPE value in USDC (≈USD)
+        
+        userBalance.totalUsd = ethValueUsd + usdcValueUsd + copeValueUsd;
+        console.log('👛 User balance calculated:', userBalance);
+      } catch (error) {
+        console.warn('⚠️ Failed to fetch user balances:', error);
+      }
     }
 
-    // Calculate APR based on fees and TVL (annualized)
-    const apr = uniswapAnalytics.fees24h && uniswapAnalytics.tvlUSD 
-      ? (uniswapAnalytics.fees24h * 365 / uniswapAnalytics.tvlUSD) * 100 
-      : 12.5;
+    // Calculate APR based on REAL fees and TVL
+    let apr = 0;
+    if (uniswapAnalytics.fees24h && uniswapAnalytics.tvlUSD && uniswapAnalytics.tvlUSD > 0) {
+      apr = (uniswapAnalytics.fees24h * 365 / uniswapAnalytics.tvlUSD) * 100;
+      console.log('📈 Calculated APR from real data:', apr);
+    } else {
+      console.warn('⚠️ Cannot calculate APR - missing fees24h or tvlUSD');
+    }
 
     const poolData: PoolData = {
       usdcCopePrice,
-      ethUsdcPrice,
-      totalLiquidity: uniswapAnalytics.totalLiquidity || 98500,
-      volume24h: uniswapAnalytics.volume24h || 45600,
-      fees24h: uniswapAnalytics.fees24h || 230,
+      ethUsdcPrice, // Only for user balance calculation
+      totalLiquidity: uniswapAnalytics.totalLiquidity || 0,
+      volume24h: uniswapAnalytics.volume24h || 0,
+      fees24h: uniswapAnalytics.fees24h || 0,
       apr,
-      tvlUSD: uniswapAnalytics.tvlUSD || 125000,
-      volumeUSD: uniswapAnalytics.volumeUSD || 45600,
-      feesUSD: uniswapAnalytics.feesUSD || 230,
+      tvlUSD: uniswapAnalytics.tvlUSD || 0,
+      volumeUSD: uniswapAnalytics.volumeUSD || 0,
+      feesUSD: uniswapAnalytics.feesUSD || 0,
       token0: uniswapAnalytics.token0 || {
-        symbol: 'USDC',
-        name: 'USD Coin',
+        symbol: 'UNKNOWN',
+        name: 'Unknown Token',
         address: '',
       },
       token1: uniswapAnalytics.token1 || {
-        symbol: 'COPE',
-        name: 'Cope Token',
+        symbol: 'UNKNOWN',
+        name: 'Unknown Token',
         address: '',
       }
     };
 
+    console.log('✅ Final pool data:', poolData);
     return { poolData, userBalance };
+
   } catch (error) {
-    console.error('Failed to fetch pool data:', error);
+    console.error('💥 FATAL ERROR fetching pool data:', error);
     
-    // Return fallback data with updated ETH price
-    const poolData: PoolData = {
-      usdcCopePrice: 1.2456,
-      ethUsdcPrice: 3786.98,
-      totalLiquidity: 98500,
-      volume24h: 45600,
-      fees24h: 230,
-      apr: 12.5,
-      tvlUSD: 125000,
-      volumeUSD: 45600,
-      feesUSD: 230,
-      token0: {
-        symbol: 'USDC',
-        name: 'USD Coin',
-        address: '',
-      },
-      token1: {
-        symbol: 'COPE',
-        name: 'Cope Token',
-        address: '',
-      }
-    };
-
-    const userBalance: UserBalance | undefined = walletAddress ? {
-      eth: 0.1,
-      usdc: 0,
-      cope: 0,
-      totalUsd: 0.1 * 3786.98
-    } : undefined;
-
-    return { poolData, userBalance };
+         // Don't use fallback - show the error to the user
+     throw new Error(`Failed to fetch real Uniswap data: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 } 

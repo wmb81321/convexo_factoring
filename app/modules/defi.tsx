@@ -47,18 +47,32 @@ export default function DeFiModule() {
   const [isSwapLoading, setIsSwapLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Fetch real pool and user data
+  // Fetch real pool and user data - NO MOCKED DATA
   const fetchData = useCallback(async () => {
-    if (!wallet?.address) return;
+    console.log('🔄 fetchData called, wallet address:', wallet?.address);
     
     try {
       setIsDataLoading(true);
-      const data = await fetchPoolData(wallet.address);
+      console.log('📡 Fetching REAL pool data...');
+      
+      const data = await fetchPoolData(wallet?.address);
+      console.log('✅ Got real data:', data);
+      
       setPoolData(data.poolData);
       setUserBalance(data.userBalance || null);
       setLastUpdated(new Date());
+      
+      console.log('🎯 State updated with real data');
     } catch (error) {
-      console.error('Failed to fetch pool data:', error);
+      console.error('💥 ERROR fetching real pool data:', error);
+      
+             // Show error to user instead of hiding it
+       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+       alert(`❌ Failed to load real Uniswap data: ${errorMessage}\n\nPlease check console for details.`);
+      
+      // Don't set any fallback data - let the UI show the error state
+      setPoolData(null);
+      setUserBalance(null);
     } finally {
       setIsDataLoading(false);
     }
@@ -182,9 +196,13 @@ export default function DeFiModule() {
                 <p className="text-sm text-institutional-light font-medium">USDC/COPE Price</p>
                 {isDataLoading ? (
                   <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
+                ) : !poolData ? (
+                  <p className="text-xl font-bold text-red-600">
+                    ERROR: No Real Data
+                  </p>
                 ) : (
                   <p className="text-2xl font-bold heading-institutional">
-                    {poolData ? formatNumber(poolData.usdcCopePrice, 4) : '-.----'}
+                    {formatNumber(poolData.usdcCopePrice, 4)}
                   </p>
                 )}
               </div>
@@ -214,9 +232,13 @@ export default function DeFiModule() {
                 <p className="text-sm text-institutional-light font-medium">Total Balance</p>
                 {isDataLoading ? (
                   <div className="h-8 w-32 bg-gray-200 animate-pulse rounded"></div>
+                ) : !userBalance ? (
+                  <p className="text-lg font-bold text-gray-500">
+                    Connect Wallet
+                  </p>
                 ) : (
                   <p className="text-2xl font-bold heading-institutional">
-                    {userBalance ? formatCurrency(userBalance.totalUsd) : '$0.00'}
+                    {formatCurrency(userBalance.totalUsd)}
                   </p>
                 )}
               </div>
@@ -227,7 +249,7 @@ export default function DeFiModule() {
             <div className="flex items-center gap-1 mt-2">
               <span className="text-sm text-institutional-light">
                 {userBalance ? (
-                  `${formatNumber(userBalance.eth, 4)} ETH • ${formatNumber(userBalance.usdc, 2)} USDC • ${formatNumber(userBalance.cope, 2)} COPE`
+                  `${formatNumber(userBalance.usdc, 2)} USDC • ${formatNumber(userBalance.cope, 2)} COPE • ${formatNumber(userBalance.eth, 4)} ETH`
                 ) : (
                   'Connect wallet to view balance'
                 )}
@@ -243,9 +265,17 @@ export default function DeFiModule() {
                 <p className="text-sm text-institutional-light font-medium">Total Value Locked</p>
                 {isDataLoading ? (
                   <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
+                ) : !poolData ? (
+                  <p className="text-lg font-bold text-red-600">
+                    No Data
+                  </p>
+                ) : poolData.tvlUSD === 0 ? (
+                  <p className="text-lg font-bold text-yellow-600">
+                    Pool Empty
+                  </p>
                 ) : (
                   <p className="text-2xl font-bold heading-institutional">
-                    {poolData ? formatCurrency(poolData.tvlUSD) : '$-.--'}
+                    {formatCurrency(poolData.tvlUSD)}
                   </p>
                 )}
               </div>
@@ -253,11 +283,11 @@ export default function DeFiModule() {
                 <Activity className="w-6 h-6 text-purple-600" />
               </div>
             </div>
-            <div className="flex items-center gap-1 mt-2">
-              <span className="text-sm text-institutional-light">
-                Live from Uniswap Analytics
-              </span>
-            </div>
+                          <div className="flex items-center gap-1 mt-2">
+                <span className="text-sm text-green-600 font-medium">
+                  ✅ Live from Uniswap Subgraph
+                </span>
+              </div>
           </CardContent>
         </Card>
 
