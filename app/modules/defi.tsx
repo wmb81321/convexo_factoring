@@ -31,10 +31,8 @@ import {
 import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
 import { SUPPORTED_CHAINS } from "@/lib/chains";
 
-// Real USDC/WETH pool for TVL data, but synthetically creates USDC/COPE pricing
-const LP_CONTRACT_ADDRESS = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
-const UNISWAP_ANALYTICS_URL = 
-  "https://app.uniswap.org/explore/pools/ethereum/0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640";
+// Simplified data sources - no complex subgraph dependencies
+const COINGECKO_URL = "https://www.coingecko.com/en/coins/cope";
 
 export default function DeFiModule() {
   const { wallets } = useWallets();
@@ -82,7 +80,7 @@ export default function DeFiModule() {
       
              // Show error to user instead of hiding it
        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-       alert(`❌ Failed to load real Uniswap data: ${errorMessage}\n\nPlease check console for details.`);
+       alert(`❌ Failed to load market data: ${errorMessage}\n\nPlease check console for details.`);
       
       // Don't set any fallback data - let the UI show the error state
       setPoolData(null);
@@ -132,7 +130,7 @@ export default function DeFiModule() {
     setSwapData(prev => ({ ...prev, [field]: value }));
 
     if (field === 'fromAmount') {
-      // Get real quote from Uniswap
+      // Get real quote from DEX
       setIsGettingQuote(true);
       try {
         const swapParams: SwapParams = {
@@ -300,16 +298,16 @@ export default function DeFiModule() {
           USDC-COPE Liquidity Pool on Ethereum Sepolia
         </p>
         <div className="flex items-center justify-center gap-2 text-sm text-institutional-light">
-          <span>Pool ID:</span>
+          <span>Data Source:</span>
           <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-            {LP_CONTRACT_ADDRESS.slice(0, 10)}...{LP_CONTRACT_ADDRESS.slice(-8)}
+            CoinGecko API
           </code>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => window.open(UNISWAP_ANALYTICS_URL, '_blank')}
+            onClick={() => window.open(COINGECKO_URL, '_blank')}
             className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
-            title="View on Uniswap Analytics"
+            title="View on CoinGecko"
           >
             <ExternalLink className="w-4 h-4" />
           </Button>
@@ -414,7 +412,7 @@ export default function DeFiModule() {
             </div>
                           <div className="flex items-center gap-1 mt-2">
                 <span className="text-sm text-green-600 font-medium">
-                  ✅ Real USDC/WETH Pool Data
+                  ✅ Live CoinGecko Market Data
                 </span>
               </div>
           </CardContent>
@@ -455,7 +453,7 @@ export default function DeFiModule() {
               Token Swap
             </CardTitle>
             <p className="text-sm text-institutional-light">
-              Real Uniswap V3 swaps with live quotes and gasless transactions
+              Real DEX swaps with live quotes and gasless transactions
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -598,11 +596,11 @@ export default function DeFiModule() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.open(UNISWAP_ANALYTICS_URL, '_blank')}
+                onClick={() => window.open(COINGECKO_URL, '_blank')}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ExternalLink className="w-4 h-4" />
-                <span className="ml-1">View on Uniswap</span>
+                <span className="ml-1">View on CoinGecko</span>
               </Button>
             </div>
           </CardHeader>
@@ -737,18 +735,18 @@ export default function DeFiModule() {
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
               <Button
                 variant="outline"
-                onClick={() => window.open(UNISWAP_ANALYTICS_URL, '_blank')}
+                onClick={() => window.open(COINGECKO_URL, '_blank')}
                 className="w-full flex items-center gap-2"
               >
                 <ExternalLink className="w-4 h-4" />
-                View Real-Time Analytics on Uniswap
+                View Market Data on CoinGecko
               </Button>
               <div className="text-center">
                 <p className="text-xs text-institutional-light">
-                  Data sourced from Uniswap V3 Subgraph
+                  Data sourced from CoinGecko API
                 </p>
                 <p className="text-xs text-institutional-light">
-                  Pool: {LP_CONTRACT_ADDRESS.slice(0, 10)}...{LP_CONTRACT_ADDRESS.slice(-8)}
+                  Real-time market pricing
                 </p>
               </div>
             </div>
