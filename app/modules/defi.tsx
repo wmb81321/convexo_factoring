@@ -20,7 +20,14 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { fetchPoolData, type PoolData, type UserBalance } from "@/lib/pool-data";
-import { getSwapQuote, prepareSwapTransaction, checkTokenApproval, prepareApprovalTransaction, type SwapParams, type SwapQuote } from "@/lib/uniswap-integration";
+import { 
+  getSwapQuote, 
+  prepareSwapTransaction, 
+  checkTokenApproval, 
+  prepareApprovalTransaction, 
+  type SwapParams, 
+  type SwapQuote 
+} from "@/lib/uniswap-integration";
 import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
 import { SUPPORTED_CHAINS } from "@/lib/chains";
 
@@ -241,7 +248,9 @@ export default function DeFiModule() {
       });
 
       const swapDetails = `${swapData.fromAmount} ${swapData.fromToken} → ${swapData.toAmount} ${swapData.toToken}`;
-      const successMsg = `🎉 Real Swap Executed!\n\n${swapDetails}\n\nTransaction was gasless thanks to Alchemy sponsorship!\n\nPrice Impact: ${currentQuote.priceImpact.toFixed(2)}%`;
+      const successMsg = `🎉 Real Swap Executed!\n\n${swapDetails}\n\n` +
+        `Transaction was gasless thanks to Alchemy sponsorship!\n\n` +
+        `Price Impact: ${currentQuote.priceImpact.toFixed(2)}%`;
       alert(successMsg);
       
       // Reset form and refresh data

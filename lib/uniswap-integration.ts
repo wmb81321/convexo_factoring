@@ -118,12 +118,6 @@ export async function getSwapQuote(params: SwapParams): Promise<SwapQuote> {
     transport: http(),
   });
 
-  const quoterContract = getContract({
-    address: addresses.quoter as `0x${string}`,
-    abi: QUOTER_ABI,
-    client: publicClient,
-  });
-
   try {
     const amountInWei = parseUnits(params.amountIn, 18); // Assuming 18 decimals, adjust as needed
     const fee = 3000; // 0.3% fee tier (most common)
@@ -135,13 +129,19 @@ export async function getSwapQuote(params: SwapParams): Promise<SwapQuote> {
       amountInWei: amountInWei.toString(),
     });
 
-    const amountOut = await quoterContract.read.quoteExactInputSingle([
-      params.tokenIn as `0x${string}`,
-      params.tokenOut as `0x${string}`,
-      fee,
-      amountInWei,
-      0n, // sqrtPriceLimitX96 = 0 (no limit)
-    ]);
+    // Use readContract instead of getContract for read operations
+    const amountOut = await publicClient.readContract({
+      address: addresses.quoter as `0x${string}`,
+      abi: QUOTER_ABI,
+      functionName: 'quoteExactInputSingle',
+      args: [
+        params.tokenIn as `0x${string}`,
+        params.tokenOut as `0x${string}`,
+        fee,
+        amountInWei,
+        BigInt(0), // sqrtPriceLimitX96 = 0 (no limit)
+      ],
+    }) as bigint;
 
     const amountOutFormatted = formatUnits(amountOut, 18); // Adjust decimals as needed
     
@@ -181,17 +181,16 @@ export async function checkTokenApproval(
     transport: http(),
   });
 
-  const tokenContract = getContract({
-    address: tokenAddress as `0x${string}`,
-    abi: ERC20_APPROVE_ABI,
-    client: publicClient,
-  });
-
   try {
-    const allowance = await tokenContract.read.allowance([
-      owner as `0x${string}`,
-      spender as `0x${string}`,
-    ]);
+    const allowance = await publicClient.readContract({
+      address: tokenAddress as `0x${string}`,
+      abi: ERC20_APPROVE_ABI,
+      functionName: 'allowance',
+      args: [
+        owner as `0x${string}`,
+        spender as `0x${string}`,
+      ],
+    }) as bigint;
 
     const amountWei = parseUnits(amount, 18); // Adjust decimals as needed
     return allowance >= amountWei;
@@ -217,7 +216,7 @@ export function prepareApprovalTransaction(
   return {
     to: tokenAddress as `0x${string}`,
     data: approveCalldata as `0x${string}`,
-    value: 0n,
+    value: BigInt(0),
   };
 }
 
@@ -247,7 +246,7 @@ export function prepareSwapTransaction(
     deadline: BigInt(deadline),
     amountIn: amountInWei,
     amountOutMinimum,
-    sqrtPriceLimitX96: 0n,
+    sqrtPriceLimitX96: BigInt(0),
   };
 
   // This is a simplified encoding - in a real app you'd use a proper ABI encoder
@@ -256,7 +255,7 @@ export function prepareSwapTransaction(
   return {
     to: addresses.router as `0x${string}`,
     data: '0x' as `0x${string}`, // You'd encode the actual call data here
-    value: 0n,
+    value: BigInt(0),
   };
 }
 

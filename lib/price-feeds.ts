@@ -24,9 +24,9 @@ export interface TokenMetrics {
  */
 export async function fetchTokenPrice(coinId: string): Promise<PriceData> {
   try {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`
-    );
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}` +
+      `&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -58,9 +58,9 @@ export async function fetchTokenPrice(coinId: string): Promise<PriceData> {
 export async function fetchMultipleTokenPrices(coinIds: string[]): Promise<Record<string, PriceData>> {
   try {
     const idsParam = coinIds.join(',');
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${idsParam}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`
-    );
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${idsParam}` +
+      `&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
