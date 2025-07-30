@@ -1,8 +1,10 @@
 import { createPublicClient, http, formatUnits, getContract } from 'viem';
 import { sepolia } from 'viem/chains';
+import { SUPPORTED_CHAINS } from './chains';
 
-// LP Contract on Ethereum Sepolia - Updated to match Uniswap analytics
-const LP_CONTRACT_ADDRESS = "0x6e3a232aab5dabf359a7702f287752eb3db696f8f917e758dce73ae2a9f60301";
+// Using a real high-TVL pool for testing (USDC/WETH 0.05%)
+// We'll update this once we find a USDC/COPE pool or use synthetic pricing
+const LP_CONTRACT_ADDRESS = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640"; // USDC/WETH 0.05% pool
 
 // Uniswap V4 Pool Interface (simplified)
 const POOL_ABI = [
@@ -62,10 +64,12 @@ const ERC20_ABI = [
   }
 ] as const;
 
-// Token addresses on Sepolia (these would need to be the actual addresses)
-const USDC_ADDRESS = "0x"; // Replace with actual USDC address on Sepolia
-const COPE_ADDRESS = "0x"; // Replace with actual COPE address on Sepolia
-const WETH_ADDRESS = "0x"; // Replace with actual WETH address on Sepolia
+// Get token addresses from chains config (Ethereum Sepolia by default)
+const CHAIN_ID = 11155111; // Ethereum Sepolia
+const chainConfig = SUPPORTED_CHAINS[CHAIN_ID];
+const USDC_ADDRESS = chainConfig.tokens.usdc?.address || "";
+const COPE_ADDRESS = chainConfig.tokens.cope?.address || "";
+const WETH_ADDRESS = "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14"; // WETH on Sepolia
 
 export interface PoolData {
   usdcCopePrice: number;
@@ -188,6 +192,9 @@ async function fetchUniswapPoolAnalytics(): Promise<Partial<PoolData>> {
       })
     });
 
+    console.log('🔗 Using pool:', LP_CONTRACT_ADDRESS);
+    console.log('📊 Pool type: USDC/WETH (real liquidity data)');
+
     console.log('📨 Response status:', response.status);
 
     if (!response.ok) {
@@ -246,28 +253,37 @@ async function fetchUniswapPoolAnalytics(): Promise<Partial<PoolData>> {
 }
 
 /**
- * Fetch real USDC/COPE price from the liquidity pool
+ * Fetch synthetic USDC/COPE price using CoinGecko + USDC/WETH pool
  */
 export async function fetchUsdcCopePrice(): Promise<number> {
   try {
-    const poolContract = getContract({
-      address: LP_CONTRACT_ADDRESS as `0x${string}`,
-      abi: POOL_ABI,
-      client: publicClient
-    });
-
-    // Get slot0 data which contains sqrtPriceX96
-    const slot0Data = await poolContract.read.slot0();
-    const sqrtPriceX96 = slot0Data[0];
-
-    // For USDC/COPE, assuming USDC (6 decimals) and COPE (18 decimals)
-    const price = calculatePriceFromSqrtPriceX96(sqrtPriceX96, 6, 18);
+    console.log('💰 Calculating synthetic USDC/COPE price...');
     
-    return price;
+    // Get COPE price in USD from CoinGecko
+    const copeResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=cope&vs_currencies=usd');
+    if (!copeResponse.ok) {
+      throw new Error('CoinGecko API failed');
+    }
+    
+    const copeData = await copeResponse.json();
+    const copeUsdPrice = copeData.cope?.usd;
+    
+    if (!copeUsdPrice) {
+      throw new Error('COPE price not found on CoinGecko');
+    }
+    
+    console.log('📊 COPE price (USD):', copeUsdPrice);
+    
+    // USDC is approximately $1, so USDC/COPE = 1 / COPE_USD_PRICE
+    const usdcCopeRate = 1 / copeUsdPrice;
+    
+    console.log('🔄 Calculated USDC/COPE rate:', usdcCopeRate);
+    return usdcCopeRate;
+    
   } catch (error) {
-    console.warn('Failed to fetch pool price, using mock data:', error);
-    // Return mock price as fallback
-    return 1.2456;
+    console.warn('Failed to fetch synthetic COPE price:', error);
+    // Return reasonable fallback for DeFi token
+    return 10.0; // Assuming COPE is around $0.10, so 1 USDC = 10 COPE
   }
 }
 

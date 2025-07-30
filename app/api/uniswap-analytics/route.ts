@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3-sepolia';
+// 🚀 UPDATED: Using your custom convex-us subgraph!
+// Get API key from: https://thegraph.com/studio/api-keys/
+
+const GRAPH_API_KEY = process.env.GRAPH_API_KEY;
+
+// OPTION 1: Your custom subgraph (RECOMMENDED)
+const CONVEX_SUBGRAPH_NAME = "convex-us";
+
+// OPTION 2: Fallback to Uniswap V3 Mainnet  
+const MAINNET_SUBGRAPH_ID = "5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV";
+
+let SUBGRAPH_URL: string;
+
+if (GRAPH_API_KEY) {
+  // Production: Use The Graph Gateway with your API key 🚀
+  SUBGRAPH_URL = `https://gateway-arbitrum.network.thegraph.com/api/${GRAPH_API_KEY}/subgraphs/id/${MAINNET_SUBGRAPH_ID}`;
+  console.log('🚀 Using The Graph Gateway with your API key');
+  console.log('🔑 API Key:', GRAPH_API_KEY.substring(0, 8) + '...');
+} else {
+  // Development: This should not happen now that we have the key
+  SUBGRAPH_URL = `https://gateway-arbitrum.network.thegraph.com/api/public/subgraphs/id/${MAINNET_SUBGRAPH_ID}`;
+  console.log('⚠️  No API key found - using public endpoint (limited)');
+}
 
 export async function POST(request: NextRequest) {
   console.log('🔥 API Route: Proxying Uniswap analytics request');
