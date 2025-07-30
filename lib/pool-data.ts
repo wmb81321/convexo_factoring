@@ -134,8 +134,7 @@ async function fetchUniswapPoolAnalytics(): Promise<Partial<PoolData>> {
   console.log('🔍 Fetching REAL Uniswap analytics for pool:', LP_CONTRACT_ADDRESS);
   
   try {
-    // Use the official Uniswap V3 subgraph for Sepolia
-    const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3-sepolia';
+    // Use our API route to proxy the Uniswap V3 subgraph request (bypasses CORS)
     
     const query = `
       query GetPool($poolId: ID!) {
@@ -173,10 +172,10 @@ async function fetchUniswapPoolAnalytics(): Promise<Partial<PoolData>> {
       }
     `;
 
-    console.log('📡 Sending GraphQL query to:', SUBGRAPH_URL);
+    console.log('📡 Sending GraphQL query via API route (bypassing CORS)');
     console.log('🔍 Pool ID:', LP_CONTRACT_ADDRESS.toLowerCase());
 
-    const response = await fetch(SUBGRAPH_URL, {
+    const response = await fetch('/api/uniswap-analytics', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
