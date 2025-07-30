@@ -21,9 +21,10 @@ import {
 } from "lucide-react";
 import { fetchPoolData, type PoolData, type UserBalance } from "@/lib/pool-data";
 
-// LP Contract on Ethereum Sepolia: 0xE03A1074c86CFeDd5C142C4F04F1a1536e203543
-const LP_CONTRACT_ADDRESS = "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543";
-const UNISWAP_ANALYTICS_URL = "https://app.uniswap.org/positions/v4/ethereum_sepolia/12714";
+// LP Contract on Ethereum Sepolia: Updated to match real analytics
+const LP_CONTRACT_ADDRESS = "0x6e3a232aab5dabf359a7702f287752eb3db696f8f917e758dce73ae2a9f60301";
+const UNISWAP_ANALYTICS_URL = 
+  "https://app.uniswap.org/explore/pools/ethereum_sepolia/0x6e3a232aab5dabf359a7702f287752eb3db696f8f917e758dce73ae2a9f60301";
 
 export default function DeFiModule() {
   const { wallets } = useWallets();
@@ -156,15 +157,16 @@ export default function DeFiModule() {
           USDC-COPE Liquidity Pool on Ethereum Sepolia
         </p>
         <div className="flex items-center justify-center gap-2 text-sm text-institutional-light">
-          <span>Contract:</span>
+          <span>Pool ID:</span>
           <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-            {LP_CONTRACT_ADDRESS}
+            {LP_CONTRACT_ADDRESS.slice(0, 10)}...{LP_CONTRACT_ADDRESS.slice(-8)}
           </code>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => window.open(UNISWAP_ANALYTICS_URL, '_blank')}
-            className="p-1"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+            title="View on Uniswap Analytics"
           >
             <ExternalLink className="w-4 h-4" />
           </Button>
@@ -238,12 +240,12 @@ export default function DeFiModule() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-institutional-light font-medium">24h Volume</p>
+                <p className="text-sm text-institutional-light font-medium">Total Value Locked</p>
                 {isDataLoading ? (
                   <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
                 ) : (
                   <p className="text-2xl font-bold heading-institutional">
-                    {poolData ? formatCurrency(poolData.volume24h) : '$-.--'}
+                    {poolData ? formatCurrency(poolData.tvlUSD) : '$-.--'}
                   </p>
                 )}
               </div>
@@ -253,7 +255,7 @@ export default function DeFiModule() {
             </div>
             <div className="flex items-center gap-1 mt-2">
               <span className="text-sm text-institutional-light">
-                Fees: {poolData ? formatCurrency(poolData.fees24h) : '$-.--'}
+                Live from Uniswap Analytics
               </span>
             </div>
           </CardContent>
@@ -263,12 +265,12 @@ export default function DeFiModule() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-institutional-light font-medium">APR</p>
+                <p className="text-sm text-institutional-light font-medium">24h Volume</p>
                 {isDataLoading ? (
                   <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
                 ) : (
                   <p className="text-2xl font-bold heading-institutional">
-                    {poolData ? formatNumber(poolData.apr, 1) : '-.--'}%
+                    {poolData ? formatCurrency(poolData.volume24h) : '$-.--'}
                   </p>
                 )}
               </div>
@@ -277,8 +279,8 @@ export default function DeFiModule() {
               </div>
             </div>
             <div className="flex items-center gap-1 mt-2">
-              <span className="text-sm text-green-600 font-medium">
-                Attractive yield
+              <span className="text-sm text-institutional-light">
+                Fees: {poolData ? formatCurrency(poolData.fees24h) : '$-.--'}
               </span>
             </div>
           </CardContent>
@@ -491,21 +493,54 @@ export default function DeFiModule() {
               </div>
             </div>
 
-            {/* Key Metrics */}
+            {/* Pool Analytics */}
             <div>
-              <h4 className="font-semibold heading-institutional mb-4">Key Metrics</h4>
+              <h4 className="font-semibold heading-institutional mb-4">Pool Analytics</h4>
               <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-institutional-light">TVL</p>
+                  <p className="font-semibold text-institutional">
+                    {poolData ? formatCurrency(poolData.tvlUSD) : '$-.--'}
+                  </p>
+                </div>
+                <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-institutional-light">24h Volume</p>
+                  <p className="font-semibold text-institutional">
+                    {poolData ? formatCurrency(poolData.volume24h) : '$-.--'}
+                  </p>
+                </div>
+                <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-institutional-light">24h Fees</p>
+                  <p className="font-semibold text-institutional">
+                    {poolData ? formatCurrency(poolData.fees24h) : '$-.--'}
+                  </p>
+                </div>
+                <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-institutional-light">APR</p>
+                  <p className="font-semibold text-institutional">
+                    {poolData ? formatNumber(poolData.apr, 2) : '-.--'}%
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pool Info */}
+            <div>
+              <h4 className="font-semibold heading-institutional mb-4">Pool Information</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-institutional-light">Token Pair</p>
+                  <p className="font-semibold text-institutional">
+                    {poolData ? `${poolData.token0.symbol}/${poolData.token1.symbol}` : 'USDC/COPE'}
+                  </p>
+                </div>
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">Fee Tier</p>
                   <p className="font-semibold text-institutional">0.30%</p>
                 </div>
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
-                  <p className="text-sm text-institutional-light">Protocol</p>
-                  <p className="font-semibold text-institutional">Uniswap V4</p>
-                </div>
-                <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">Network</p>
-                  <p className="font-semibold text-institutional">Sepolia</p>
+                  <p className="font-semibold text-institutional">Ethereum Sepolia</p>
                 </div>
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">ETH Price</p>
@@ -517,15 +552,23 @@ export default function DeFiModule() {
             </div>
 
             {/* External Links */}
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
               <Button
                 variant="outline"
                 onClick={() => window.open(UNISWAP_ANALYTICS_URL, '_blank')}
                 className="w-full flex items-center gap-2"
               >
                 <ExternalLink className="w-4 h-4" />
-                View Full Analytics on Uniswap
+                View Real-Time Analytics on Uniswap
               </Button>
+              <div className="text-center">
+                <p className="text-xs text-institutional-light">
+                  Data sourced from Uniswap V3 Subgraph
+                </p>
+                <p className="text-xs text-institutional-light">
+                  Pool: {LP_CONTRACT_ADDRESS.slice(0, 10)}...{LP_CONTRACT_ADDRESS.slice(-8)}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
