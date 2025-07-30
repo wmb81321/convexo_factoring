@@ -4,11 +4,17 @@ import { useState } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import Header from "./components/header";
 import LoginCard from "./components/login-card";
-import PrivySmartWallet from "./components/privy-smart-wallet";
+import Navigation from "./components/navigation";
+import HomeModule from "./modules/home";
+import ProfileModule from "./modules/profile";
+import TransfersModule from "./modules/transfers";
+import DeFiModule from "./modules/defi";
+import { ModuleType } from "./types/modules";
 
 export default function Home() {
   const { authenticated, ready } = usePrivy();
   const { wallets } = useWallets();
+  const [activeModule, setActiveModule] = useState<ModuleType>('home');
 
   // Professional loading state
   if (!ready) {
@@ -30,6 +36,21 @@ export default function Home() {
     );
   }
 
+  const renderActiveModule = () => {
+    switch (activeModule) {
+      case 'home':
+        return <HomeModule />;
+      case 'profile':
+        return <ProfileModule />;
+      case 'transfers':
+        return <TransfersModule />;
+      case 'defi':
+        return <DeFiModule />;
+      default:
+        return <HomeModule />;
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {/* Professional Header */}
@@ -39,7 +60,7 @@ export default function Home() {
       <main className="min-h-[calc(100vh-4rem)] relative">
         {/* Content Container */}
         <div className="container-institutional section-padding">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             {!authenticated ? (
               /* Login Section with Professional Styling */
               <div className="flex justify-center items-center min-h-[60vh]">
@@ -56,9 +77,18 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              /* Authenticated Dashboard with Professional Layout */
-              <div className="slide-up">
-                <PrivySmartWallet />
+              /* Authenticated Dashboard with Modular Layout */
+              <div className="slide-up space-y-8">
+                {/* Navigation */}
+                <Navigation 
+                  activeModule={activeModule} 
+                  onModuleChange={setActiveModule} 
+                />
+                
+                {/* Active Module Content */}
+                <div className="min-h-[60vh]">
+                  {renderActiveModule()}
+                </div>
               </div>
             )}
           </div>
@@ -70,6 +100,19 @@ export default function Home() {
             <div className="text-center">
               <p className="text-sm text-institutional-light">
                 Powered by Alchemy Gas Manager • Secured by Privy Smart Wallets
+                {authenticated && (
+                  <>
+                    {' • '}
+                    <a 
+                      href="https://app.uniswap.org/positions/v4/ethereum_sepolia/12714" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors"
+                    >
+                      USDC-COPE LP Analytics
+                    </a>
+                  </>
+                )}
               </p>
             </div>
           </div>
