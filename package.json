@@ -8,8 +8,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "node scripts/postinstall.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@account-kit/core": "4.35.1",
