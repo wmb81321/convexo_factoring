@@ -2,9 +2,11 @@ import { createPublicClient, http, formatUnits, getContract } from 'viem';
 import { sepolia } from 'viem/chains';
 import { SUPPORTED_CHAINS } from './chains';
 
-// Using a real high-TVL pool for testing (USDC/WETH 0.05%)
-// We'll update this once we find a USDC/COPE pool or use synthetic pricing
-const LP_CONTRACT_ADDRESS = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640"; // USDC/WETH 0.05% pool
+// Use real USDC/WETH pool on Ethereum Mainnet for real TVL data
+// We implement synthetic USDC/COPE pricing by combining:
+// 1. Real USDC/WETH pool analytics for TVL and volume
+// 2. CoinGecko API for COPE price to calculate USDC/COPE rate
+const LP_CONTRACT_ADDRESS = "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640"; // USDC/WETH 0.05% pool - ETHEREUM MAINNET
 
 // Uniswap V4 Pool Interface (simplified)
 const POOL_ABI = [
@@ -125,9 +127,8 @@ async function fetchEthUsdcPrice(): Promise<number> {
     const data = await response.json();
     return data.ethereum.usd;
   } catch (error) {
-    console.warn('Failed to fetch ETH price from CoinGecko, using fallback:', error);
-    // Fallback price
-    return 3786.98;
+    console.error('❌ Failed to fetch ETH price from CoinGecko:', error);
+    throw new Error('Unable to fetch real ETH price. Please check your internet connection.');
   }
 }
 
@@ -253,37 +254,42 @@ async function fetchUniswapPoolAnalytics(): Promise<Partial<PoolData>> {
 }
 
 /**
- * Fetch synthetic USDC/COPE price using CoinGecko + USDC/WETH pool
+ * Fetch synthetic USDC/COPE price using real market data
  */
 export async function fetchUsdcCopePrice(): Promise<number> {
   try {
-    console.log('💰 Calculating synthetic USDC/COPE price...');
+    console.log('💰 Fetching real USDC/COPE exchange rate...');
     
     // Get COPE price in USD from CoinGecko
-    const copeResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=cope&vs_currencies=usd');
+    const copeResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=cope&vs_currencies=usd&include_24hr_change=true');
     if (!copeResponse.ok) {
-      throw new Error('CoinGecko API failed');
+      throw new Error(`CoinGecko API failed: ${copeResponse.status}`);
     }
     
     const copeData = await copeResponse.json();
     const copeUsdPrice = copeData.cope?.usd;
+    const copeChange24h = copeData.cope?.usd_24h_change || 0;
     
     if (!copeUsdPrice) {
       throw new Error('COPE price not found on CoinGecko');
     }
     
-    console.log('📊 COPE price (USD):', copeUsdPrice);
+    console.log('📊 COPE market data:', {
+      priceUsd: copeUsdPrice,
+      change24h: copeChange24h,
+      timestamp: new Date().toISOString(),
+    });
     
-    // USDC is approximately $1, so USDC/COPE = 1 / COPE_USD_PRICE
+    // Calculate how many COPE tokens you get for 1 USDC
+    // Since USDC ≈ $1, USDC/COPE rate = 1 / COPE_USD_PRICE
     const usdcCopeRate = 1 / copeUsdPrice;
     
-    console.log('🔄 Calculated USDC/COPE rate:', usdcCopeRate);
+    console.log('🔄 Real USDC/COPE exchange rate:', usdcCopeRate);
     return usdcCopeRate;
     
   } catch (error) {
-    console.warn('Failed to fetch synthetic COPE price:', error);
-    // Return reasonable fallback for DeFi token
-    return 10.0; // Assuming COPE is around $0.10, so 1 USDC = 10 COPE
+    console.error('❌ Failed to fetch real COPE price:', error);
+    throw new Error(`Unable to fetch real COPE price: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -337,14 +343,8 @@ export async function fetchUserBalances(walletAddress: string): Promise<UserBala
       totalUsd: 0 // Will be calculated in the component
     };
   } catch (error) {
-    console.warn('Failed to fetch user balances:', error);
-    // Return mock data as fallback
-    return {
-      eth: 0.5,
-      usdc: 1000,
-      cope: 500,
-      totalUsd: 0
-    };
+    console.error('❌ Failed to fetch user balances:', error);
+    throw new Error('Unable to fetch real user balances. Please check wallet connection.');
   }
 }
 
@@ -359,23 +359,14 @@ export async function fetchPoolData(walletAddress?: string): Promise<{ poolData:
     console.log('📊 Fetching real Uniswap analytics...');
     const uniswapAnalytics = await fetchUniswapPoolAnalytics();
     
-    // For USDC-COPE LP, we need USDC/COPE price from the pool
-    let usdcCopePrice = 1.0; // Default fallback
-    try {
-      usdcCopePrice = await fetchUsdcCopePrice();
-      console.log('💰 USDC/COPE price:', usdcCopePrice);
-    } catch (error) {
-      console.warn('⚠️ Failed to fetch USDC/COPE price, using default:', error);
-    }
+    // Fetch real prices - no fallbacks
+    console.log('💰 Fetching real USDC/COPE price...');
+    const usdcCopePrice = await fetchUsdcCopePrice();
+    console.log('💰 USDC/COPE price:', usdcCopePrice);
 
-    // ETH price for user balance calculation (not for pool analytics)
-    let ethUsdcPrice = 3786.98; // Default
-    try {
-      ethUsdcPrice = await fetchEthUsdcPrice();
-      console.log('💎 ETH price:', ethUsdcPrice);
-    } catch (error) {
-      console.warn('⚠️ Failed to fetch ETH price, using default:', error);
-    }
+    console.log('💎 Fetching real ETH/USD price...');
+    const ethUsdcPrice = await fetchEthUsdcPrice();
+    console.log('💎 ETH price:', ethUsdcPrice);
 
     // Fetch user balances if wallet address provided
     let userBalance: UserBalance | undefined;
@@ -432,7 +423,7 @@ export async function fetchPoolData(walletAddress?: string): Promise<{ poolData:
   } catch (error) {
     console.error('💥 FATAL ERROR fetching pool data:', error);
     
-         // Don't use fallback - show the error to the user
-     throw new Error(`Failed to fetch real Uniswap data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+         // Re-throw error with context - no fallback to mock data
+    throw new Error(`Failed to fetch real pool data: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 } 

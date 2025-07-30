@@ -3,7 +3,7 @@ import {
   cookieStorage,
   createConfig,
 } from "@account-kit/react";
-import { alchemy, optimism } from "@account-kit/infra";
+import { alchemy, sepolia } from "@account-kit/infra";
 import { QueryClient } from "@tanstack/react-query";
 
 const API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
@@ -34,8 +34,8 @@ const uiConfig: AlchemyAccountsUIConfig = {
 export const config = createConfig(
   {
     transport: alchemy({ apiKey: API_KEY }),
-    // Configured for Optimism Mainnet for Convexo
-    chain: optimism,
+    // Configured for Ethereum Sepolia for testing with real pools
+    chain: sepolia,
     ssr: true,
     storage: cookieStorage,
     enablePopupOauth: true,
