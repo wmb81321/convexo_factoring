@@ -20,7 +20,7 @@ export interface ChainConfig {
   pimlicoBundlerUrl: string;
   tokens: {
     usdc?: TokenContract;
-    cope?: TokenContract;
+    ecop?: TokenContract;
   };
   isDefault?: boolean;
 }
@@ -46,10 +46,10 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         name: "USD Coin",
         decimals: 6,
       },
-      cope: {
-        address: "0x9B063Cfa8BDC03492933caA8BEa7c3d89846b2a7",
-        symbol: "COPE",
-        name: "Cope Token",
+      ecop: {
+        address: "0x9b063cfa8bdc03492933caa8bea7c3d89846b2a7",
+        symbol: "ECOP",
+        name: "ECOP Token",
         decimals: 18,
       },
     },
@@ -76,7 +76,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         name: "USD Coin",
         decimals: 6,
       },
-      // COPE not deployed on Unichain yet
+      // ECOP not deployed on Unichain yet
     },
   },
   
@@ -100,7 +100,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         name: "USD Coin",
         decimals: 6,
       },
-      // COPE not deployed on Optimism yet
+      // ECOP not deployed on Optimism yet
     },
   },
   
@@ -124,7 +124,12 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         name: "USD Coin",
         decimals: 6,
       },
-      // COPE not deployed on Base yet
+      ecop: {
+        address: "0x34fa1aed9f275451747f3e9b5377608ccf96a458",
+        symbol: "ECOP",
+        name: "ECOP Token",
+        decimals: 18,
+      },
     },
   },
 };
@@ -145,7 +150,7 @@ export function getChainTokens(chainId: number): TokenContract[] {
   
   const tokens: TokenContract[] = [];
   if (chain.tokens.usdc) tokens.push(chain.tokens.usdc);
-  if (chain.tokens.cope) tokens.push(chain.tokens.cope);
+  if (chain.tokens.ecop) tokens.push(chain.tokens.ecop);
   
   return tokens;
 } 

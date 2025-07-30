@@ -101,7 +101,7 @@ export default function ChainSelector({
                   <span className="text-xs text-gray-500">
                     Chain ID: {chain.chainId}
                   </span>
-                  {chain.tokens.usdc && chain.tokens.cope && (
+                  {chain.tokens.usdc && chain.tokens.ecop && (
                     <div className="flex items-center gap-1">
                       <Zap className="h-3 w-3 text-green-500" />
                       <span className="text-xs text-green-600">Tokens Available</span>
