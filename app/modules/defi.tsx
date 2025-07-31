@@ -23,7 +23,7 @@ import {
 import { fetchAllChainsBalances, getAggregatedBalanceSummary } from "@/lib/blockchain";
 import { getPoolAnalytics, getUserDeFiPortfolio } from "@/lib/uniswap-subgraph";
 import { fetchMarketData } from "@/lib/pool-data";
-import SwapWidgetComponent from "@/app/components/swap-widget";
+import SimpleSwap from "@/app/components/simple-swap";
 
 interface TokenBalance {
   symbol: string;
@@ -368,26 +368,8 @@ export default function DeFi() {
         </CardContent>
       </Card>
 
-      {/* Swap Interface */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5" />
-            Swap Tokens
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SwapWidgetComponent 
-            defaultInputToken="NATIVE"
-            defaultOutputToken="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219"
-            onSwapComplete={(txHash) => {
-              console.log('Swap completed:', txHash);
-              // Refresh data after swap
-              fetchData();
-            }}
-          />
-        </CardContent>
-      </Card>
+      {/* USDC-COPE LP Swap Interface */}
+      <SimpleSwap />
 
       {/* User Positions */}
       <Card>

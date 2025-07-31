@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Home, User, ArrowLeftRight, TrendingUp, Menu, X, Zap } from "lucide-react";
+import { Home, User, ArrowLeftRight, TrendingUp, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModuleType } from "@/app/types/modules";
 
@@ -34,14 +34,6 @@ const navigationItems = [
     description: 'Send & Receive',
     color: 'text-green-600',
     bgColor: 'bg-green-50 dark:bg-green-900/20',
-  },
-  {
-    id: 'swap' as ModuleType,
-    label: 'Swap',
-    icon: Zap,
-    description: 'Trade Tokens',
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
   },
   {
     id: 'defi' as ModuleType,

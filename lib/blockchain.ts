@@ -10,55 +10,60 @@ const ERC20_ABI = parseAbi([
   'function name() view returns (string)',
 ]);
 
-// Create public clients for different chains with more reliable RPC endpoints
+// Create public clients for different chains
 const getPublicClient = (chainId: number) => {
-  switch (chainId) {
-    case 11155111: // Ethereum Sepolia
-      return createPublicClient({
-        chain: sepolia,
-        transport: http('https://rpc.sepolia.org'), // Using public RPC for better reliability
-      });
-    case 11155420: // Optimism Sepolia  
-      return createPublicClient({
-        chain: optimismSepolia,
-        transport: http('https://sepolia.optimism.io'),
-      });
-    case 84532: // Base Sepolia
-      return createPublicClient({
-        chain: baseSepolia,
-        transport: http('https://sepolia.base.org'),
-      });
-    case 1301: // Unichain Sepolia
-      return createPublicClient({
-        chain: {
-          id: 1301,
-          name: 'Unichain Sepolia',
-          network: 'unichain-sepolia',
-          nativeCurrency: {
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-          },
-          rpcUrls: {
-            default: {
-              http: ['https://sepolia.unichain.org'],
+  try {
+    switch (chainId) {
+      case 11155111: // Ethereum Sepolia
+        return createPublicClient({
+          chain: sepolia,
+          transport: http('https://rpc.sepolia.org'),
+        });
+      case 11155420: // Optimism Sepolia  
+        return createPublicClient({
+          chain: optimismSepolia,
+          transport: http('https://sepolia.optimism.io'),
+        });
+      case 84532: // Base Sepolia
+        return createPublicClient({
+          chain: baseSepolia,
+          transport: http('https://sepolia.base.org'),
+        });
+      case 1301: // Unichain Sepolia
+        return createPublicClient({
+          chain: {
+            id: 1301,
+            name: 'Unichain Sepolia',
+            network: 'unichain-sepolia',
+            nativeCurrency: {
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
             },
-            public: {
-              http: ['https://sepolia.unichain.org'],
+            rpcUrls: {
+              default: {
+                http: ['https://sepolia.unichain.org'],
+              },
+              public: {
+                http: ['https://sepolia.unichain.org'],
+              },
             },
-          },
-          blockExplorers: {
-            default: {
-              name: 'Unichain Sepolia Explorer',
-              url: 'https://unichain-sepolia.blockscout.com',
+            blockExplorers: {
+              default: {
+                name: 'Unichain Sepolia Explorer',
+                url: 'https://unichain-sepolia.blockscout.com',
+              },
             },
+            testnet: true,
           },
-          testnet: true,
-        },
-        transport: http('https://sepolia.unichain.org'),
-      });
-    default:
-      throw new Error(`Unsupported chain ID: ${chainId}`);
+          transport: http('https://sepolia.unichain.org'),
+        });
+      default:
+        throw new Error(`Unsupported chain ID: ${chainId}`);
+    }
+  } catch (error) {
+    console.error(`Error creating client for chain ${chainId}:`, error);
+    throw error;
   }
 };
 
@@ -113,23 +118,6 @@ export async function fetchNativeBalance(
   }
 }
 
-// Helper function to retry failed requests
-async function retryRequest<T>(
-  request: () => Promise<T>,
-  maxRetries: number = 3,
-  delay: number = 1000
-): Promise<T> {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await request();
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
-    }
-  }
-  throw new Error('Max retries exceeded');
-}
-
 // Fetch ERC-20 token balance
 export async function fetchTokenBalance(
   walletAddress: string,
@@ -144,19 +132,12 @@ export async function fetchTokenBalance(
 
     const client = getPublicClient(chainId);
     
-    // Get token balance with retry mechanism
-    const balance = await retryRequest(async () => {
-      return await Promise.race([
-        client.readContract({
-          address: tokenContract.address as `0x${string}`,
-          abi: ERC20_ABI,
-          functionName: 'balanceOf',
-          args: [walletAddress as `0x${string}`],
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 10000)
-        )
-      ]);
+    // Get token balance
+    const balance = await client.readContract({
+      address: tokenContract.address as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: 'balanceOf',
+      args: [walletAddress as `0x${string}`],
     });
 
     // Format balance using token decimals
@@ -168,13 +149,11 @@ export async function fetchTokenBalance(
     // Create explorer URL for the token contract
     const contractExplorerUrl = `${chain.blockExplorer}/token/${tokenContract.address}`;
 
-    // Real USD values - NO MORE MOCKS
+    // USD values
     let usdValue: string | undefined;
     if (tokenContract.symbol === 'USDC') {
       usdValue = `$${formattedBalance}`; // USDC is pegged to $1
     }
-    // COPE USD value will be calculated in the UI using real LP price
-    // Don't calculate it here since we need the LP price
 
     return {
       symbol: tokenContract.symbol,

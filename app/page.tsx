@@ -8,7 +8,6 @@ import Navigation from "./components/navigation";
 import HomeModule from "./modules/home";
 import ProfileModule from "./modules/profile";
 import TransfersModule from "./modules/transfers";
-import SwapModule from "./modules/swap";
 import DeFiModule from "./modules/defi";
 import { ModuleType } from "./types/modules";
 
@@ -45,8 +44,6 @@ export default function Home() {
         return <ProfileModule />;
       case 'transfers':
         return <TransfersModule />;
-      case 'swap':
-        return <SwapModule />;
       case 'defi':
         return <DeFiModule />;
       default:
