@@ -1,51 +1,12 @@
 "use client";
 
-import React from "react";
-import { useWallets } from "@privy-io/react-auth";
-import { SwapWidget, lightTheme } from '@uniswap/widgets';
+import { SwapWidget } from '@uniswap/widgets';
 import '@uniswap/widgets/fonts.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Simple token list for USDC-COPE LP on Ethereum Sepolia
-const LP_TOKEN_LIST = [
-  {
-    name: "Ethereum",
-    address: "NATIVE",
-    symbol: "ETH",
-    decimals: 18,
-    chainId: 11155111,
-    logoURI: "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
-  },
-  {
-    name: "USD Coin",
-    address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-    symbol: "USDC",
-    decimals: 6,
-    chainId: 11155111,
-    logoURI: "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png"
-  },
-  {
-    name: "Electronic Colombian Peso",
-    address: "0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219",
-    symbol: "COPE",
-    decimals: 18,
-    chainId: 11155111,
-    logoURI: 
-      "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219/logo.png"
-  }
-];
-
-// JSON-RPC for Ethereum Sepolia only
-const jsonRpcUrlMap = {
-  11155111: ['https://rpc.sepolia.org'], // Ethereum Sepolia
-};
-
 export default function SimpleSwap() {
-  const { wallets } = useWallets();
-  const wallet = wallets?.[0];
-
   return (
     <Card>
       <CardHeader>
@@ -67,18 +28,10 @@ export default function SimpleSwap() {
       </CardHeader>
       <CardContent className="p-0">
         <div className="flex justify-center">
-          <SwapWidget
-            provider={wallet?.walletClientType === 'privy' ? undefined : undefined}
-            jsonRpcUrlMap={jsonRpcUrlMap}
-            tokenList={LP_TOKEN_LIST}
-            theme={lightTheme}
-            defaultInputTokenAddress="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238" // USDC
-            defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219" // COPE
+          <SwapWidget 
+            defaultInputTokenAddress="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+            defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219"
             width={380}
-            hideConnectionUI={false}
-            onError={(error) => {
-              console.error('Swap widget error:', error);
-            }}
           />
         </div>
         <div className="p-4 text-center">
