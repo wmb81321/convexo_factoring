@@ -1,346 +1,221 @@
 "use client";
 
-import { useState } from "react";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { 
   User, 
-  Camera, 
-  Settings, 
   Shield, 
-  Bell,
-  Globe,
-  Moon,
-  Sun,
-  Copy,
-  Check
+  CheckCircle, 
+  XCircle, 
+  Clock,
+  Mail,
+  Smartphone,
+  Globe
 } from "lucide-react";
 
-export default function ProfileModule() {
-  const { user } = usePrivy();
-  const { wallets } = useWallets();
-  const wallet = wallets?.[0];
-  
-  const [profile, setProfile] = useState({
-    name: user?.email?.address || '',
-    email: user?.email?.address || '',
-    avatar: '',
-    currency: 'USD',
-    language: 'en',
-    notifications: true,
-    theme: 'light',
-  });
-  
-  const [copied, setCopied] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+export default function Profile() {
+  const { user, logout } = usePrivy();
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSaving(false);
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-gray-500">
+              Please connect your wallet to view profile
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Mock verification status - this will be integrated with Veriff
+  const verificationStatus = {
+    isVerified: false,
+    status: "pending", // "pending", "verified", "rejected"
+    requestedAt: null,
+    verifiedAt: null
   };
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
+  const getVerificationBadge = () => {
+    switch (verificationStatus.status) {
+      case "verified":
+        return <Badge className="bg-green-100 text-green-700 border-green-200">Verified</Badge>;
+      case "rejected":
+        return <Badge className="bg-red-100 text-red-700 border-red-200">Rejected</Badge>;
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Pending</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-700 border-gray-200">Not Verified</Badge>;
     }
   };
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const getVerificationIcon = () => {
+    switch (verificationStatus.status) {
+      case "verified":
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case "rejected":
+        return <XCircle className="w-5 h-5 text-red-600" />;
+      case "pending":
+        return <Clock className="w-5 h-5 text-yellow-600" />;
+      default:
+        return <Shield className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+  const handleVerificationRequest = () => {
+    // TODO: Integrate with Veriff API
+    console.log("Requesting verification with Veriff...");
+    alert("Verification request will be integrated with Veriff API");
   };
 
   return (
-    <div className="space-y-8 fade-in">
-      {/* Profile Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold heading-institutional">Profile Settings</h1>
-        <p className="text-lg text-institutional-light">
-          Manage your account information and preferences
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Profile Information */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 heading-institutional">
-                <User className="w-5 h-5 text-primary" />
-                Personal Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Avatar Section */}
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-primary" />
-                  </div>
-                  <button 
-                    className="absolute -bottom-1 -right-1 w-8 h-8 bg-white shadow-lg rounded-full 
-                      flex items-center justify-center hover:bg-gray-50 transition-colors"
-                  >
-                    <Camera className="w-4 h-4 text-gray-600" />
-                  </button>
-                </div>
-                <div>
-                  <h3 className="font-semibold heading-institutional">Profile Picture</h3>
-                  <p className="text-sm text-institutional-light">
-                    Upload a profile picture to personalize your account
-                  </p>
-                </div>
+    <div className="space-y-6">
+      {/* User Profile */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="w-5 h-5" />
+            Profile Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+              <User className="w-8 h-8 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">{user.email?.address?.split('@')[0] || 'User'}</h3>
+              <p className="text-gray-600 dark:text-gray-300">{user.email?.address}</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <Mail className="w-4 h-4 text-gray-500" />
+              <div>
+                <p className="text-sm font-medium">Email</p>
+                                 <p className="text-sm text-gray-600 dark:text-gray-300">{user.email?.address}</p>
               </div>
-
-              {/* Form Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Display Name</Label>
-                  <Input
-                    id="name"
-                    value={profile.name}
-                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    placeholder="Enter your name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                    placeholder="Enter your email"
-                  />
-                </div>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <Globe className="w-4 h-4 text-gray-500" />
+              <div>
+                <p className="text-sm font-medium">Wallet Type</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Smart Wallet</p>
               </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-              <Button 
-                onClick={handleSave}
-                disabled={isSaving}
-                className="btn-institutional"
-              >
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Preferences */}
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 heading-institutional">
-                <Settings className="w-5 h-5 text-primary" />
-                Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Default Currency</Label>
-                  <select 
-                    id="currency"
-                    className="w-full p-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-800"
-                    value={profile.currency}
-                    onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
-                  >
-                    <option value="USD">USD - US Dollar</option>
-                    <option value="EUR">EUR - Euro</option>
-                    <option value="GBP">GBP - British Pound</option>
-                    <option value="JPY">JPY - Japanese Yen</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <select 
-                    id="language"
-                    className="w-full p-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-800"
-                    value={profile.language}
-                    onChange={(e) => setProfile({ ...profile, language: e.target.value })}
-                  >
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                    <option value="fr">Français</option>
-                    <option value="de">Deutsch</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Toggle Settings */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Bell className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <h4 className="font-medium heading-institutional">Notifications</h4>
-                      <p className="text-sm text-institutional-light">
-                        Receive transaction and security alerts
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setProfile({ ...profile, notifications: !profile.notifications })}
-                    className={`w-12 h-6 rounded-full transition-colors ${
-                      profile.notifications ? 'bg-blue-600' : 'bg-gray-300'
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                        profile.notifications ? 'translate-x-6' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {profile.theme === 'light' ? (
-                      <Sun className="w-5 h-5 text-yellow-600" />
-                    ) : (
-                      <Moon className="w-5 h-5 text-purple-600" />
-                    )}
-                    <div>
-                      <h4 className="font-medium heading-institutional">Theme</h4>
-                      <p className="text-sm text-institutional-light">
-                        Choose your preferred theme
-                      </p>
-                    </div>
-                  </div>
-                  <select 
-                    className="p-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-800"
-                    value={profile.theme}
-                    onChange={(e) => setProfile({ ...profile, theme: e.target.value })}
-                  >
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="auto">Auto</option>
-                  </select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Wallet Information */}
-        <div className="space-y-6">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 heading-institutional">
-                <Shield className="w-5 h-5 text-primary" />
-                Wallet Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-green-50/50 dark:bg-green-900/10 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-semibold text-green-600">Smart Wallet Active</span>
-                </div>
-                <p className="text-xs text-institutional-light">
-                  Your smart wallet is connected and secured
+      {/* Verification Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5" />
+            Verification Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="flex items-center gap-3">
+              {getVerificationIcon()}
+              <div>
+                <p className="font-medium">Identity Verification</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  {verificationStatus.status === "verified" 
+                    ? "Your identity has been verified" 
+                    : verificationStatus.status === "pending"
+                    ? "Verification is being processed"
+                    : verificationStatus.status === "rejected"
+                    ? "Verification was rejected"
+                    : "Complete verification to unlock all features"
+                  }
                 </p>
               </div>
+            </div>
+            {getVerificationBadge()}
+          </div>
 
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-sm font-medium">Wallet Address</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <code className="flex-1 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                      {wallet?.address ? formatAddress(wallet.address) : 'Loading...'}
-                    </code>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => wallet?.address && copyToClipboard(wallet.address)}
-                      className="p-2"
-                    >
-                      {copied ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
+          {verificationStatus.status === "not_verified" && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                Why verify your identity?
+              </h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                <li>• Higher transaction limits</li>
+                <li>• Access to advanced DeFi features</li>
+                <li>• Enhanced security and compliance</li>
+                <li>• Priority customer support</li>
+              </ul>
+            </div>
+          )}
 
-                <div>
-                  <Label className="text-sm font-medium">Wallet Type</Label>
-                  <p className="text-sm text-institutional-light mt-1">
-                    ERC-4337 Smart Wallet
-                  </p>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Provider</Label>
-                  <p className="text-sm text-institutional-light mt-1">
-                    Privy + Alchemy
-                  </p>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Network</Label>
-                  <p className="text-sm text-institutional-light mt-1">
-                    Ethereum Sepolia
-                  </p>
-                </div>
+          {verificationStatus.status === "pending" && (
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-4 h-4 text-yellow-600" />
+                <span className="font-medium text-yellow-900 dark:text-yellow-100">
+                  Verification in Progress
+                </span>
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                Your verification request is being reviewed. This usually takes 1-2 business days.
+              </p>
+            </div>
+          )}
 
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 heading-institutional">
-                <Globe className="w-5 h-5 text-primary" />
-                Security Features
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-semibold text-institutional">
-                    Social Recovery
-                  </p>
-                  <p className="text-xs text-institutional-light">
-                    Account recovery via email
-                  </p>
-                </div>
+          {verificationStatus.status === "rejected" && (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <XCircle className="w-4 h-4 text-red-600" />
+                <span className="font-medium text-red-900 dark:text-red-100">
+                  Verification Rejected
+                </span>
               </div>
+              <p className="text-sm text-red-800 dark:text-red-200">
+                Your verification was not approved. Please ensure all documents are clear and valid.
+              </p>
+            </div>
+          )}
 
-              <div className="flex items-center gap-3 p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-lg">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-semibold text-institutional">
-                    Gas Sponsorship
-                  </p>
-                  <p className="text-xs text-institutional-light">
-                    Gasless transactions enabled
-                  </p>
-                </div>
-              </div>
+          {verificationStatus.status !== "verified" && (
+            <Button 
+              onClick={handleVerificationRequest}
+              className="w-full"
+              disabled={verificationStatus.status === "pending"}
+            >
+              {verificationStatus.status === "pending" 
+                ? "Verification in Progress..." 
+                : verificationStatus.status === "rejected"
+                ? "Request New Verification"
+                : "Request Verification"
+              }
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
-              <div className="flex items-center gap-3 p-3 bg-green-50/50 dark:bg-green-900/10 rounded-lg">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-semibold text-institutional">
-                    Multi-Factor Auth
-                  </p>
-                  <p className="text-xs text-institutional-light">
-                    Enhanced security enabled
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Account Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={logout} 
+            variant="outline" 
+            className="w-full"
+          >
+            Disconnect Wallet
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 } 
