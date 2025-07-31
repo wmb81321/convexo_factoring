@@ -20,7 +20,7 @@ export interface ChainConfig {
   pimlicoBundlerUrl: string;
   tokens: {
     usdc?: TokenContract;
-    ecop?: TokenContract;
+    ecop?: TokenContract; // Electronic Colombian Peso (COPE)
   };
   isDefault?: boolean;
 }
@@ -47,9 +47,9 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         decimals: 6,
       },
       ecop: {
-        address: "0x9b063cfa8bdc03492933caa8bea7c3d89846b2a7",
-        symbol: "ECOP",
-        name: "ECOP Token",
+        address: "0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219", // Electronic Colombian Peso (COPE)
+        symbol: "COPE",
+        name: "Electronic Colombian Peso",
         decimals: 18,
       },
     },
@@ -125,9 +125,9 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         decimals: 6,
       },
       ecop: {
-        address: "0x34fa1aed9f275451747f3e9b5377608ccf96a458",
-        symbol: "ECOP",
-        name: "ECOP Token",
+        address: "0x34fa1aed9f275451747f3e9b5377608ccf96a458", // Electronic Colombian Peso (COPE) - Base deployment
+        symbol: "COPE",
+        name: "Electronic Colombian Peso",
         decimals: 18,
       },
     },

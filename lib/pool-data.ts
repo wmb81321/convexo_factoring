@@ -314,8 +314,8 @@ export async function fetchAllPoolsData(walletAddress?: string): Promise<{
           address: USDC_ADDRESS,
         },
         token1: {
-          symbol: 'ECOP',
-          name: 'ECOP Token',
+          symbol: 'COPE',
+          name: 'Electronic Colombian Peso',
           address: ECOP_ADDRESS,
         }
       }

@@ -189,8 +189,8 @@ export async function fetchAllBalances(
       tokenPromises.push(fetchTokenBalance(walletAddress, chain.tokens.usdc, chainId));
     }
     
-    if (chain.tokens.cope) {
-      tokenPromises.push(fetchTokenBalance(walletAddress, chain.tokens.cope, chainId));
+    if (chain.tokens.ecop) {
+      tokenPromises.push(fetchTokenBalance(walletAddress, chain.tokens.ecop, chainId));
     }
 
     // Wait for all token balances
