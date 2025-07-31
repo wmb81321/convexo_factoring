@@ -6,6 +6,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Custom token list for Ethereum Sepolia - NO EXTERNAL DEPENDENCIES
+const SEPOLIA_TOKEN_LIST = [
+  {
+    name: "Ethereum",
+    address: "NATIVE",
+    symbol: "ETH",
+    decimals: 18,
+    chainId: 11155111,
+    logoURI: "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
+  },
+  {
+    name: "USD Coin",
+    address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    symbol: "USDC",
+    decimals: 6,
+    chainId: 11155111,
+    logoURI: "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png"
+  },
+  {
+    name: "Electronic Colombian Peso",
+    address: "0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219",
+    symbol: "COPE",
+    decimals: 18,
+    chainId: 11155111,
+    logoURI: "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
+  }
+];
+
+// RPC endpoints for Ethereum Sepolia
+const jsonRpcUrlMap = {
+  11155111: ['https://rpc.sepolia.org', 'https://ethereum-sepolia.blockpi.network/v1/rpc/public']
+};
+
 export default function SimpleSwap() {
   return (
     <Card>
@@ -29,6 +62,8 @@ export default function SimpleSwap() {
       <CardContent className="p-0">
         <div className="flex justify-center">
           <SwapWidget 
+            jsonRpcUrlMap={jsonRpcUrlMap}
+            tokenList={SEPOLIA_TOKEN_LIST}
             defaultInputTokenAddress="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
             defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219"
             width={380}

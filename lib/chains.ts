@@ -50,7 +50,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         address: "0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219", // Electronic Colombian Peso (COPE)
         symbol: "COPE",
         name: "Electronic Colombian Peso",
-        decimals: 18,
+        decimals: 6,
       },
 
     },
@@ -129,7 +129,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         address: "0x34fa1aed9f275451747f3e9b5377608ccf96a458", // Electronic Colombian Peso (COPE) - Base deployment
         symbol: "COPE",
         name: "Electronic Colombian Peso",
-        decimals: 18,
+        decimals: 6,
       },
     },
   },

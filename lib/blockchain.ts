@@ -124,6 +124,9 @@ export async function fetchTokenBalance(
   tokenContract: TokenContract,
   chainId: number
 ): Promise<TokenBalance> {
+  console.log(`🔍 Fetching ${tokenContract.symbol} balance for ${walletAddress} on chain ${chainId}`);
+  console.log(`Contract address: ${tokenContract.address}`);
+  
   try {
     const chain = getChainById(chainId);
     if (!chain) {
@@ -132,7 +135,8 @@ export async function fetchTokenBalance(
 
     const client = getPublicClient(chainId);
     
-    // Get token balance
+    // Get token balance with detailed logging
+    console.log(`📞 Calling balanceOf for ${tokenContract.symbol}...`);
     const balance = await client.readContract({
       address: tokenContract.address as `0x${string}`,
       abi: ERC20_ABI,
@@ -140,11 +144,15 @@ export async function fetchTokenBalance(
       args: [walletAddress as `0x${string}`],
     });
 
+    console.log(`✅ Raw balance for ${tokenContract.symbol}:`, balance);
+
     // Format balance using token decimals
     const balanceFormatted = formatUnits(balance as bigint, tokenContract.decimals);
     const formattedBalance = parseFloat(balanceFormatted).toFixed(
       tokenContract.decimals === 6 ? 2 : 4
     );
+
+    console.log(`✅ Formatted balance for ${tokenContract.symbol}: ${formattedBalance}`);
 
     // Create explorer URL for the token contract
     const contractExplorerUrl = `${chain.blockExplorer}/token/${tokenContract.address}`;
@@ -165,7 +173,8 @@ export async function fetchTokenBalance(
       contractExplorerUrl,
     };
   } catch (error) {
-    console.error(`Error fetching ${tokenContract.symbol} balance on chain ${chainId}:`, error);
+    console.error(`❌ FAILED to fetch ${tokenContract.symbol} balance:`, error);
+    console.error(`Contract: ${tokenContract.address}, Chain: ${chainId}, Wallet: ${walletAddress}`);
     
     // Create explorer URL even for failed requests
     const chain = getChainById(chainId);
