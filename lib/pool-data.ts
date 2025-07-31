@@ -98,25 +98,31 @@ async function fetchMarketData(): Promise<{
       throw new Error('Missing ETH price from CoinGecko');
     }
     
-    // Get ECOP price from LP
-    let ecopPrice = 0.12; // Fallback
-    let usdcEcopRate = 1 / ecopPrice; // Fallback
+    // Get ECOP price from LP - NO FALLBACK, must use real price
+    let ecopPrice = 0; // Will be set from LP
+    let usdcEcopRate = 0; // Will be set from LP
     let lpData: LPPriceData | undefined;
     
     try {
+      console.log('🔍 Fetching REAL ECOP price from LP...');
       lpData = await getEcopUsdcPriceFromLP(CHAIN_ID);
-      ecopPrice = lpData.price; // ECOP price in USDC
-      usdcEcopRate = 1 / ecopPrice; // How many ECOP tokens for 1 USDC
+      ecopPrice = lpData.price; // ECOP price in USDC (e.g., 0.0002395 if 4174.57 ECOP = 1 USDC)
+      usdcEcopRate = 1 / ecopPrice; // How many ECOP tokens for 1 USDC (e.g., 4174.57)
       
-      console.log('✅ Using real LP price for ECOP:', {
-        ecopPrice,
-        usdcEcopRate,
+      console.log('✅ Using REAL LP price for ECOP:', {
+        ecopPrice: ecopPrice.toFixed(8),
+        usdcEcopRate: usdcEcopRate.toFixed(2),
+        explanation: `${usdcEcopRate.toFixed(2)} ECOP = 1 USDC`,
         poolAddress: lpData.poolAddress,
         liquidity: lpData.liquidity.toString(),
       });
     } catch (error) {
-      console.warn('⚠️ Failed to fetch ECOP price from LP, using fallback:', error);
-      console.log('📊 Using fallback ECOP price:', ecopPrice);
+      console.error('❌ CRITICAL: Failed to fetch ECOP price from LP:', error);
+      throw new Error(`Cannot get ECOP price from LP: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+    
+    if (!lpData || ecopPrice === 0) {
+      throw new Error('Invalid LP data - ECOP price cannot be zero');
     }
     
     console.log('📊 Market data:', {
@@ -129,8 +135,8 @@ async function fetchMarketData(): Promise<{
     
     return {
       ethPrice,
-      ecopPrice,
-      usdcEcopRate,
+      ecopPrice, // Real ECOP price in USDC from LP
+      usdcEcopRate, // Real rate: how many ECOP for 1 USDC
       lpData,
     };
     

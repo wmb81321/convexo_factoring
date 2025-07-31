@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useWallets } from "@privy-io/react-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,11 +87,29 @@ export default function DeFiModule() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Calculate individual token USD values
+  // Calculate individual token USD values using REAL prices
   const ethUsdValue = userBalance && ethUsdPool ? userBalance.eth * ethUsdPool.ethUsdcPrice! : 0;
   const usdcUsdValue = userBalance ? userBalance.usdc * 1 : 0; // USDC ≈ $1
-  const copeUsdValue = userBalance && usdcCopePool ? userBalance.ecop * usdcCopePool.usdcEcopPrice! : 0;
+  
+  // COPE USD value using REAL LP price (e.g., if 4174.57 COPE = 1 USDC, then 1 COPE = 0.0002395 USDC)
+  const copeUsdValue = userBalance && usdcCopePool && usdcCopePool.usdcEcopPrice 
+    ? userBalance.ecop * usdcCopePool.usdcEcopPrice! 
+    : 0;
+  
   const totalUsdValue = ethUsdValue + usdcUsdValue + copeUsdValue;
+  
+  // Debug logging for price verification
+  React.useEffect(() => {
+    if (usdcCopePool) {
+      console.log('🔍 COPE Price Debug:', {
+        copePrice: usdcCopePool.usdcEcopPrice,
+        copeBalance: userBalance?.ecop || 0,
+        copeUsdValue: copeUsdValue,
+        exchangeRate: usdcCopePool.usdcEcopPrice ? `1 COPE = $${usdcCopePool.usdcEcopPrice.toFixed(8)}` : 'No price',
+        inverseRate: usdcCopePool.usdcEcopPrice ? `1 USDC = ${(1/usdcCopePool.usdcEcopPrice).toFixed(2)} COPE` : 'No price'
+      });
+    }
+  }, [usdcCopePool, userBalance, copeUsdValue]);
 
   // Swap handling
   const handleSwapInputChange = async (field: 'fromAmount' | 'toAmount', value: string) => {

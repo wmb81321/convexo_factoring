@@ -135,13 +135,13 @@ export async function fetchTokenBalance(
       tokenContract.decimals === 6 ? 2 : 4
     );
 
-    // Mock USD values - integrate with price APIs for real values
+    // Real USD values - NO MORE MOCKS
     let usdValue: string | undefined;
     if (tokenContract.symbol === 'USDC') {
       usdValue = `$${formattedBalance}`; // USDC is pegged to $1
-    } else if (tokenContract.symbol === 'COPE') {
-      usdValue = `$${(parseFloat(balanceFormatted) * 0.25).toFixed(2)}`; // Assuming $0.25 per COPE
     }
+    // COPE USD value will be calculated in the UI using real LP price
+    // Don't calculate it here since we need the LP price
 
     return {
       symbol: tokenContract.symbol,
