@@ -183,7 +183,7 @@ export default function TransfersModule() {
         </CardHeader>
         <CardContent>
           {wallet?.address ? (
-            <TokenBalances walletAddress={wallet.address} chainId={11155111} />
+            <TokenBalances walletAddress={wallet.address} />
           ) : (
             <div className="text-center py-8">
               <p className="text-institutional-light">Connect wallet to view balances</p>

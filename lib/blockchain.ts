@@ -1,6 +1,6 @@
 import { createPublicClient, http, formatEther, formatUnits, parseAbi } from 'viem';
 import { sepolia, optimismSepolia, baseSepolia } from 'viem/chains';
-import { getChainById, TokenContract } from './chains';
+import { getChainById, TokenContract, getAllChains } from './chains';
 
 // ERC-20 ABI for balance and token info
 const ERC20_ABI = parseAbi([
@@ -224,4 +224,75 @@ export function formatLargeNumber(num: number): string {
     return `${(num / 1_000).toFixed(2)}K`;
   }
   return num.toFixed(2);
+} 
+
+/**
+ * Fetch balances across all supported chains for a wallet address
+ */
+export async function fetchAllChainsBalances(walletAddress: string): Promise<{
+  [chainId: number]: TokenBalance[];
+}> {
+  const allChains = getAllChains();
+  const results: { [chainId: number]: TokenBalance[] } = {};
+  
+  console.log(`🔍 Fetching balances across ${allChains.length} chains for ${walletAddress}`);
+  
+  // Fetch balances for all chains in parallel
+  const promises = allChains.map(async (chain) => {
+    try {
+      console.log(`🔍 Fetching balances for chain ${chain.chainId} (${chain.name})`);
+      const balances = await fetchAllBalances(walletAddress, chain.chainId);
+      results[chain.chainId] = balances;
+      console.log(`✅ Chain ${chain.chainId}: Found ${balances.length} tokens`);
+      return { chainId: chain.chainId, balances, error: null };
+    } catch (error) {
+      console.error(`❌ Chain ${chain.chainId}: Error fetching balances:`, error);
+      results[chain.chainId] = [];
+      return { chainId: chain.chainId, balances: [], error };
+    }
+  });
+  
+  await Promise.all(promises);
+  
+  console.log(`✅ Multi-chain balance fetch complete. Results:`, results);
+  return results;
+}
+
+/**
+ * Get aggregated balance summary across all chains
+ */
+export function getAggregatedBalanceSummary(allChainsBalances: { [chainId: number]: TokenBalance[] }): {
+  totalEth: number;
+  totalUsdc: number;
+  totalCope: number;
+  chainBreakdown: { [chainId: number]: { eth: number; usdc: number; cope: number; } };
+} {
+  const summary = {
+    totalEth: 0,
+    totalUsdc: 0,
+    totalCope: 0,
+    chainBreakdown: {} as { [chainId: number]: { eth: number; usdc: number; cope: number; } }
+  };
+  
+  Object.entries(allChainsBalances).forEach(([chainId, balances]) => {
+    const chainSummary = { eth: 0, usdc: 0, cope: 0 };
+    
+    balances.forEach(balance => {
+      const amount = parseFloat(balance.balance);
+      if (balance.symbol === 'ETH') {
+        chainSummary.eth += amount;
+        summary.totalEth += amount;
+      } else if (balance.symbol === 'USDC') {
+        chainSummary.usdc += amount;
+        summary.totalUsdc += amount;
+      } else if (balance.symbol === 'COPE') {
+        chainSummary.cope += amount;
+        summary.totalCope += amount;
+      }
+    });
+    
+    summary.chainBreakdown[parseInt(chainId)] = chainSummary;
+  });
+  
+  return summary;
 } 

@@ -205,7 +205,6 @@ export default function PrivySmartWallet() {
       {embeddedWallet && (
         <TokenBalances
           walletAddress={embeddedWallet.address}
-          chainId={selectedChainId}
         />
       )}
 
