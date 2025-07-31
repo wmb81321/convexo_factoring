@@ -192,6 +192,8 @@ export async function fetchAllBalances(
     if (chain.tokens.ecop) {
       tokenPromises.push(fetchTokenBalance(walletAddress, chain.tokens.ecop, chainId));
     }
+    
+
 
     // Wait for all token balances
     const tokenBalances = await Promise.all(tokenPromises);

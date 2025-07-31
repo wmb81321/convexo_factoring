@@ -52,6 +52,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         name: "Electronic Colombian Peso",
         decimals: 18,
       },
+
     },
     isDefault: true,
   },
@@ -151,6 +152,7 @@ export function getChainTokens(chainId: number): TokenContract[] {
   const tokens: TokenContract[] = [];
   if (chain.tokens.usdc) tokens.push(chain.tokens.usdc);
   if (chain.tokens.ecop) tokens.push(chain.tokens.ecop);
+
   
   return tokens;
 } 

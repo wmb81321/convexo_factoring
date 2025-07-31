@@ -190,7 +190,7 @@ export default function DeFi() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
               <div className="flex items-center gap-3">
                 <div className="text-2xl">💎</div>
@@ -215,17 +215,19 @@ export default function DeFi() {
               </div>
             </div>
             
-            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <div className="text-2xl">🚀</div>
-                <div>
-                  <div className="font-semibold">{formatNumber(aggregatedSummary.totalCope, 2)} COPE</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {poolAnalytics?.token1Price ? formatCurrency(aggregatedSummary.totalCope * poolAnalytics.token1Price) : 'Loading...'}
-                  </div>
-                </div>
-              </div>
-            </div>
+                         <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+               <div className="flex items-center gap-3">
+                 <div className="text-2xl">🚀</div>
+                 <div>
+                   <div className="font-semibold">{formatNumber(aggregatedSummary.totalCope, 2)} COPE</div>
+                   <div className="text-sm text-gray-600 dark:text-gray-300">
+                     {poolAnalytics?.token1Price ? formatCurrency(aggregatedSummary.totalCope * poolAnalytics.token1Price) : 'Loading...'}
+                   </div>
+                 </div>
+               </div>
+             </div>
+             
+
           </div>
 
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
@@ -237,14 +239,14 @@ export default function DeFi() {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-xl font-bold">
-                  {(() => {
-                    const ethValue = marketData?.ethPrice ? aggregatedSummary.totalEth * marketData.ethPrice : 0;
-                    const usdcValue = aggregatedSummary.totalUsdc;
-                    const copeValue = poolAnalytics?.token1Price ? aggregatedSummary.totalCope * poolAnalytics.token1Price : 0;
-                    return formatCurrency(ethValue + usdcValue + copeValue);
-                  })()}
-                </div>
+                                 <div className="text-xl font-bold">
+                   {(() => {
+                     const ethValue = marketData?.ethPrice ? aggregatedSummary.totalEth * marketData.ethPrice : 0;
+                     const usdcValue = aggregatedSummary.totalUsdc;
+                     const copeValue = poolAnalytics?.token1Price ? aggregatedSummary.totalCope * poolAnalytics.token1Price : 0;
+                     return formatCurrency(ethValue + usdcValue + copeValue);
+                   })()}
+                 </div>
               </div>
             </div>
           </div>
