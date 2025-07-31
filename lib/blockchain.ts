@@ -16,7 +16,7 @@ const getPublicClient = (chainId: number) => {
     case 11155111: // Ethereum Sepolia
       return createPublicClient({
         chain: sepolia,
-        transport: http('https://eth-sepolia.g.alchemy.com/v2/demo'), // Using Alchemy demo endpoint for better reliability
+        transport: http('https://rpc.sepolia.org'), // Using public RPC for better reliability
       });
     case 11155420: // Optimism Sepolia  
       return createPublicClient({
@@ -113,6 +113,23 @@ export async function fetchNativeBalance(
   }
 }
 
+// Helper function to retry failed requests
+async function retryRequest<T>(
+  request: () => Promise<T>,
+  maxRetries: number = 3,
+  delay: number = 1000
+): Promise<T> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await request();
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
 // Fetch ERC-20 token balance
 export async function fetchTokenBalance(
   walletAddress: string,
@@ -127,12 +144,19 @@ export async function fetchTokenBalance(
 
     const client = getPublicClient(chainId);
     
-    // Get token balance
-    const balance = await client.readContract({
-      address: tokenContract.address as `0x${string}`,
-      abi: ERC20_ABI,
-      functionName: 'balanceOf',
-      args: [walletAddress as `0x${string}`],
+    // Get token balance with retry mechanism
+    const balance = await retryRequest(async () => {
+      return await Promise.race([
+        client.readContract({
+          address: tokenContract.address as `0x${string}`,
+          abi: ERC20_ABI,
+          functionName: 'balanceOf',
+          args: [walletAddress as `0x${string}`],
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 10000)
+        )
+      ]);
     });
 
     // Format balance using token decimals
@@ -181,100 +205,7 @@ export async function fetchTokenBalance(
   }
 }
 
-/**
- * Debug function to test COPE balance fetching specifically
- */
-export async function debugCopeBalance(walletAddress: string): Promise<void> {
-  console.log('🔍 DEBUG: Testing COPE balance fetching...');
-  console.log('Wallet address:', walletAddress);
-  
-  const chains = getAllChains();
-  
-  for (const chain of chains) {
-    if (chain.tokens.ecop) {
-      console.log(`\n🔍 Testing COPE on ${chain.name} (${chain.chainId})`);
-      console.log('COPE contract address:', chain.tokens.ecop.address);
-      console.log('Block explorer:', chain.blockExplorer);
-      
-      try {
-        const balance = await fetchTokenBalance(walletAddress, chain.tokens.ecop, chain.chainId);
-        console.log('✅ COPE balance result:', balance);
-        
-        if (balance.error) {
-          console.log('❌ Error fetching COPE balance:', balance.error);
-        } else {
-          console.log('✅ COPE balance fetched successfully');
-          console.log('Balance:', balance.balance);
-          console.log('Formatted:', balance.formattedBalance);
-        }
-      } catch (error) {
-        console.error('❌ Exception fetching COPE balance:', error);
-      }
-    } else {
-      console.log(`\n⚠️ No COPE token configured for ${chain.name} (${chain.chainId})`);
-    }
-  }
-}
 
-/**
- * Test if COPE contract is accessible and returns correct data
- */
-export async function testCopeContract(): Promise<void> {
-  console.log('🔍 Testing COPE contract accessibility...');
-  
-  const chain = getChainById(11155111); // Ethereum Sepolia
-  if (!chain || !chain.tokens.ecop) {
-    console.log('❌ COPE token not configured for Ethereum Sepolia');
-    return;
-  }
-  
-  const client = getPublicClient(11155111);
-  const contractAddress = chain.tokens.ecop.address;
-  
-  try {
-    // Test reading token symbol
-    console.log('🔍 Testing token symbol...');
-    const symbol = await client.readContract({
-      address: contractAddress as `0x${string}`,
-      abi: ERC20_ABI,
-      functionName: 'symbol',
-    });
-    console.log('✅ Token symbol:', symbol);
-    
-    // Test reading token name
-    console.log('🔍 Testing token name...');
-    const name = await client.readContract({
-      address: contractAddress as `0x${string}`,
-      abi: ERC20_ABI,
-      functionName: 'name',
-    });
-    console.log('✅ Token name:', name);
-    
-    // Test reading token decimals
-    console.log('🔍 Testing token decimals...');
-    const decimals = await client.readContract({
-      address: contractAddress as `0x${string}`,
-      abi: ERC20_ABI,
-      functionName: 'decimals',
-    });
-    console.log('✅ Token decimals:', decimals);
-    
-    // Test reading balance for a zero address (should return 0)
-    console.log('🔍 Testing balance for zero address...');
-    const zeroBalance = await client.readContract({
-      address: contractAddress as `0x${string}`,
-      abi: ERC20_ABI,
-      functionName: 'balanceOf',
-      args: ['0x0000000000000000000000000000000000000000' as `0x${string}`],
-    });
-    console.log('✅ Zero address balance:', zeroBalance);
-    
-    console.log('✅ COPE contract is accessible and working correctly');
-    
-  } catch (error) {
-    console.error('❌ Error testing COPE contract:', error);
-  }
-}
 
 // Fetch all balances for a wallet on a specific chain
 export async function fetchAllBalances(
@@ -283,57 +214,35 @@ export async function fetchAllBalances(
 ): Promise<TokenBalance[]> {
   const chain = getChainById(chainId);
   if (!chain) {
-    console.log(`❌ Chain ${chainId} not found in configuration`);
     return [];
   }
 
-  console.log(`🔍 Fetching balances for ${walletAddress} on ${chain.name} (${chainId})`);
   const balances: TokenBalance[] = [];
 
   try {
     // Always fetch native balance first
-    console.log('🔍 Fetching native balance...');
     const nativeBalance = await fetchNativeBalance(walletAddress, chainId);
     balances.push(nativeBalance);
-    console.log('✅ Native balance:', nativeBalance.formattedBalance, nativeBalance.symbol);
 
     // Fetch token balances if available on this chain
     const tokenPromises: Promise<TokenBalance>[] = [];
     
     if (chain.tokens.usdc) {
-      console.log('🔍 Fetching USDC balance...');
       tokenPromises.push(fetchTokenBalance(walletAddress, chain.tokens.usdc, chainId));
-    } else {
-      console.log('⚠️ No USDC token configured for this chain');
     }
     
     if (chain.tokens.ecop) {
-      console.log('🔍 Fetching COPE balance...');
-      console.log('COPE contract:', chain.tokens.ecop.address);
       tokenPromises.push(fetchTokenBalance(walletAddress, chain.tokens.ecop, chainId));
-    } else {
-      console.log('⚠️ No COPE token configured for this chain');
     }
 
     // Wait for all token balances
     if (tokenPromises.length > 0) {
-      console.log(`🔍 Waiting for ${tokenPromises.length} token balances...`);
       const tokenBalances = await Promise.all(tokenPromises);
       balances.push(...tokenBalances);
-      
-      tokenBalances.forEach(balance => {
-        if (balance.error) {
-          console.log(`❌ Error fetching ${balance.symbol}:`, balance.error);
-        } else {
-          console.log(`✅ ${balance.symbol} balance:`, balance.formattedBalance);
-        }
-      });
     }
 
-    console.log(`✅ Total balances found: ${balances.length}`);
-
   } catch (error) {
-    console.error('❌ Error fetching balances:', error);
+    console.error('Error fetching balances:', error);
   }
 
   return balances;
@@ -370,18 +279,14 @@ export async function fetchAllChainsBalances(walletAddress: string): Promise<{
   const allChains = getAllChains();
   const results: { [chainId: number]: TokenBalance[] } = {};
   
-  console.log(`🔍 Fetching balances across ${allChains.length} chains for ${walletAddress}`);
-  
   // Fetch balances for all chains in parallel
   const promises = allChains.map(async (chain) => {
     try {
-      console.log(`🔍 Fetching balances for chain ${chain.chainId} (${chain.name})`);
       const balances = await fetchAllBalances(walletAddress, chain.chainId);
       results[chain.chainId] = balances;
-      console.log(`✅ Chain ${chain.chainId}: Found ${balances.length} tokens`);
       return { chainId: chain.chainId, balances, error: null };
     } catch (error) {
-      console.error(`❌ Chain ${chain.chainId}: Error fetching balances:`, error);
+      console.error(`Chain ${chain.chainId}: Error fetching balances:`, error);
       results[chain.chainId] = [];
       return { chainId: chain.chainId, balances: [], error };
     }
@@ -389,7 +294,6 @@ export async function fetchAllChainsBalances(walletAddress: string): Promise<{
   
   await Promise.all(promises);
   
-  console.log(`✅ Multi-chain balance fetch complete. Results:`, results);
   return results;
 }
 

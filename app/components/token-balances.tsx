@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, ExternalLink, Copy, Check, AlertCircle, Send, Download, Globe, Bug } from "lucide-react";
+import { RefreshCw, ExternalLink, Copy, Check, AlertCircle, Send, Download, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllChains, getChainById, ChainConfig } from "@/lib/chains";
-import { fetchAllChainsBalances, getAggregatedBalanceSummary, TokenBalance, debugCopeBalance, testCopeContract } from "@/lib/blockchain";
+import { fetchAllChainsBalances, getAggregatedBalanceSummary, TokenBalance } from "@/lib/blockchain";
 import SendModal from "./send-modal";
 import ReceiveModal from "./receive-modal";
 
@@ -49,21 +49,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
     }
   }, [walletAddress]);
 
-  // Debug function to test COPE balance fetching
-  const handleDebugCope = useCallback(async () => {
-    console.log('🔍 Starting COPE balance debug...');
-    
-    // First test the contract accessibility
-    await testCopeContract();
-    
-    if (!walletAddress) {
-      console.log('⚠️ No wallet address provided for debug');
-      return;
-    }
-    
-    // Then test balance fetching for the wallet
-    await debugCopeBalance(walletAddress);
-  }, [walletAddress]);
+
 
   useEffect(() => {
     fetchBalances();
@@ -155,15 +141,6 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleDebugCope}
-              className="h-8 px-2 text-xs"
-              title="Debug COPE Balance"
-            >
-              <Bug className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
               onClick={fetchBalances}
               disabled={isLoading}
               className="h-8 w-8 p-0"
@@ -193,16 +170,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
             </div>
           </div>
 
-          {/* Debug Section - Show raw balance data */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-            <h4 className="font-semibold mb-2">Debug Info</h4>
-            <div className="text-xs space-y-1">
-              <div>Wallet: {formatAddress(walletAddress)}</div>
-              <div>Total chains: {chains.length}</div>
-              <div>Chains with COPE: {chains.filter(c => c.tokens.ecop).length}</div>
-              <div>Raw balance data: {JSON.stringify(allChainsBalances, null, 2)}</div>
-            </div>
-          </div>
+
 
           {/* Send & Receive Buttons */}
           <div className="flex gap-3">

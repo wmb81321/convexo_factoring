@@ -1,7 +1,16 @@
 "use client";
 import { PrivyProvider } from '@privy-io/react-auth';
 import { SmartWalletsProvider } from '@privy-io/react-auth/smart-wallets';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { PropsWithChildren } from "react";
+
+// Create a simple Redux store for Uniswap widget
+const store = configureStore({
+  reducer: {
+    // Add any reducers here if needed
+  },
+});
 
 export const Providers = (props: PropsWithChildren) => {
   const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
@@ -90,7 +99,9 @@ export const Providers = (props: PropsWithChildren) => {
         },
         }}
       >
-        {props.children}
+        <Provider store={store}>
+          {props.children}
+        </Provider>
       </SmartWalletsProvider>
     </PrivyProvider>
   );
