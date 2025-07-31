@@ -33,8 +33,6 @@ import { SUPPORTED_CHAINS } from "@/lib/chains";
 
 // Simplified data sources - no complex subgraph dependencies
 const COINGECKO_URL = "https://www.coingecko.com/en/coins/ethereum";
-const ECOP_CONTRACT_SEPOLIA = "https://sepolia.etherscan.io/token/0x9b063cfa8bdc03492933caa8bea7c3d89846b2a7";
-const ECOP_CONTRACT_BASE = "https://sepolia.basescan.org/token/0x34fa1aed9f275451747f3e9b5377608ccf96a458";
 
 export default function DeFiModule() {
   const { wallets } = useWallets();
@@ -70,6 +68,10 @@ export default function DeFiModule() {
       setIsDataLoading(true);
       console.log('📡 Fetching REAL pools data...');
       
+      // Add cache busting to prevent stale data
+      const timestamp = Date.now();
+      console.log('🕒 Cache bust timestamp:', timestamp);
+      
       const data = await fetchAllPoolsData(wallet?.address);
       console.log('✅ Got real data:', data);
       
@@ -81,9 +83,9 @@ export default function DeFiModule() {
     } catch (error) {
       console.error('💥 ERROR fetching real pools data:', error);
       
-             // Show error to user instead of hiding it
-       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-       alert(`❌ Failed to load market data: ${errorMessage}\n\nPlease check console for details.`);
+      // Show error to user instead of hiding it
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`❌ Failed to load market data: ${errorMessage}\n\nPlease check console for details.`);
       
       // Don't set any fallback data - let the UI show the error state
       setPoolsData([]);
@@ -206,7 +208,8 @@ export default function DeFiModule() {
           const approvalTx = prepareApprovalTransaction(
             tokenInAddress,
             routerAddress,
-            swapData.fromAmount
+            swapData.fromAmount,
+            chainId
           );
 
           // Send approval with gas sponsorship
@@ -464,7 +467,7 @@ export default function DeFiModule() {
                   <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
                 ) : (
                   <p className="text-2xl font-bold heading-institutional">
-                    {poolData ? formatCurrency(poolData.volume24h) : '$-.--'}
+                    {currentPoolData ? formatCurrency(currentPoolData.volume24h) : '$-.--'}
                   </p>
                 )}
               </div>
@@ -633,6 +636,18 @@ export default function DeFiModule() {
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={() => {
+                  console.log('🔄 Manual refresh triggered');
+                  fetchData();
+                }}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span className="ml-1">Refresh Data</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => window.open(COINGECKO_URL, '_blank')}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
@@ -661,8 +676,8 @@ export default function DeFiModule() {
                       {userBalance ? formatNumber(userBalance.eth, 4) : '0.0000'}
                     </p>
                     <p className="text-sm text-institutional-light">
-                      {userBalance && poolData ? 
-                        formatCurrency(userBalance.eth * poolData.ethUsdcPrice) : '$0.00'}
+                                    {userBalance && currentPoolData?.ethUsdcPrice ?
+              formatCurrency(userBalance.eth * currentPoolData.ethUsdcPrice) : '$0.00'}
                     </p>
                   </div>
                 </div>
@@ -690,20 +705,20 @@ export default function DeFiModule() {
                 <div className="flex items-center justify-between p-3 bg-orange-50/50 dark:bg-orange-900/10 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      C
+                      E
                     </div>
                     <div>
-                      <p className="font-medium text-institutional">COPE</p>
-                      <p className="text-sm text-institutional-light">Cope Token</p>
+                      <p className="font-medium text-institutional">ECOP</p>
+                      <p className="text-sm text-institutional-light">ECOP Token</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-institutional">
-                      {userBalance ? formatNumber(userBalance.cope, 2) : '0.00'}
+                      {userBalance ? formatNumber(userBalance.ecop, 2) : '0.00'}
                     </p>
                     <p className="text-sm text-institutional-light">
-                      {userBalance && poolData ? 
-                        formatCurrency(userBalance.cope * poolData.usdcCopePrice) : '$0.00'}
+                                    {userBalance && currentPoolData?.usdcEcopPrice ?
+              formatCurrency(userBalance.ecop * currentPoolData.usdcEcopPrice) : '$0.00'}
                     </p>
                   </div>
                 </div>
@@ -717,25 +732,25 @@ export default function DeFiModule() {
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">TVL</p>
                   <p className="font-semibold text-institutional">
-                    {poolData ? formatCurrency(poolData.tvlUSD) : '$-.--'}
+                    {currentPoolData ? formatCurrency(currentPoolData.tvlUSD) : '$-.--'}
                   </p>
                 </div>
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">24h Volume</p>
                   <p className="font-semibold text-institutional">
-                    {poolData ? formatCurrency(poolData.volume24h) : '$-.--'}
+                    {currentPoolData ? formatCurrency(currentPoolData.volume24h) : '$-.--'}
                   </p>
                 </div>
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">24h Fees</p>
                   <p className="font-semibold text-institutional">
-                    {poolData ? formatCurrency(poolData.fees24h) : '$-.--'}
+                    {currentPoolData ? formatCurrency(currentPoolData.fees24h) : '$-.--'}
                   </p>
                 </div>
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">APR</p>
                   <p className="font-semibold text-institutional">
-                    {poolData ? formatNumber(poolData.apr, 2) : '-.--'}%
+                    {currentPoolData ? formatNumber(currentPoolData.apr, 2) : '-.--'}%
                   </p>
                 </div>
               </div>
@@ -748,7 +763,7 @@ export default function DeFiModule() {
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">Token Pair</p>
                   <p className="font-semibold text-institutional">
-                    {poolData ? `${poolData.token0.symbol}/${poolData.token1.symbol}` : 'USDC/COPE'}
+                    {currentPoolData ? `${currentPoolData.token0.symbol}/${currentPoolData.token1.symbol}` : 'USDC/ECOP'}
                   </p>
                 </div>
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
@@ -762,7 +777,7 @@ export default function DeFiModule() {
                 <div className="p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-institutional-light">ETH Price</p>
                   <p className="font-semibold text-institutional">
-                    {poolData ? formatCurrency(poolData.ethUsdcPrice) : '$-.--'}
+                    {currentPoolData?.ethUsdcPrice ? formatCurrency(currentPoolData.ethUsdcPrice) : '$-.--'}
                   </p>
                 </div>
               </div>

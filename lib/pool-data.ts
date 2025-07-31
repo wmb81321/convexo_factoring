@@ -1,6 +1,7 @@
 import { createPublicClient, http, formatUnits, getContract } from 'viem';
 import { sepolia } from 'viem/chains';
 import { SUPPORTED_CHAINS } from './chains';
+import { getEcopUsdcPriceFromLP, LPPriceData } from './uniswap-integration';
 
 // ERC20 ABI for balance checks
 const ERC20_ABI = [
@@ -70,17 +71,18 @@ const publicClient = createPublicClient({
 });
 
 /**
- * Fetch market data from CoinGecko for multiple tokens
+ * Fetch market data combining CoinGecko (for ETH) and LP data (for ECOP)
  */
 async function fetchMarketData(): Promise<{
   ethPrice: number;
   ecopPrice: number;
   usdcEcopRate: number;
+  lpData?: LPPriceData;
 }> {
   try {
-    console.log('💰 Fetching market data from CoinGecko...');
+    console.log('💰 Fetching market data from CoinGecko and LP...');
     
-    // Get ETH price
+    // Get ETH price from CoinGecko
     const ethResponse = await fetch(
       'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&include_24hr_change=true'
     );
@@ -92,21 +94,36 @@ async function fetchMarketData(): Promise<{
     const ethData = await ethResponse.json();
     const ethPrice = ethData.ethereum?.usd || 0;
     
-    // For ECOP, we'll use a synthetic price since it might not be on CoinGecko
-    // You can replace this with real API calls if ECOP gets listed
-    const ecopPrice = 0.12; // Example: $0.12 per ECOP
-    
     if (!ethPrice) {
       throw new Error('Missing ETH price from CoinGecko');
     }
     
-    // Calculate USDC/ECOP rate (how many ECOP tokens for 1 USDC)
-    const usdcEcopRate = 1 / ecopPrice;
+    // Get ECOP price from LP
+    let ecopPrice = 0.12; // Fallback
+    let usdcEcopRate = 1 / ecopPrice; // Fallback
+    let lpData: LPPriceData | undefined;
+    
+    try {
+      lpData = await getEcopUsdcPriceFromLP(CHAIN_ID);
+      ecopPrice = lpData.price; // ECOP price in USDC
+      usdcEcopRate = 1 / ecopPrice; // How many ECOP tokens for 1 USDC
+      
+      console.log('✅ Using real LP price for ECOP:', {
+        ecopPrice,
+        usdcEcopRate,
+        poolAddress: lpData.poolAddress,
+        liquidity: lpData.liquidity.toString(),
+      });
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch ECOP price from LP, using fallback:', error);
+      console.log('📊 Using fallback ECOP price:', ecopPrice);
+    }
     
     console.log('📊 Market data:', {
       ethPrice,
       ecopPrice,
       usdcEcopRate,
+      source: lpData ? 'LP + CoinGecko' : 'CoinGecko + Fallback',
       timestamp: new Date().toISOString(),
     });
     
@@ -114,6 +131,7 @@ async function fetchMarketData(): Promise<{
       ethPrice,
       ecopPrice,
       usdcEcopRate,
+      lpData,
     };
     
   } catch (error) {
