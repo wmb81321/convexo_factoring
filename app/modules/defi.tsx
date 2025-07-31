@@ -65,12 +65,27 @@ export default function DeFiModule() {
   const fetchData = useCallback(async () => {
     try {
       setIsDataLoading(true);
-      const data = await fetchAllPoolsData(wallet?.address);
+      console.log('🔍 DeFi fetchData called with wallet:', wallet?.address);
+      
+      if (!wallet?.address) {
+        console.log('⚠️ No wallet address, skipping data fetch');
+        setPoolsData([]);
+        setUserBalance(null);
+        return;
+      }
+      
+      const data = await fetchAllPoolsData(wallet.address);
+      console.log('✅ DeFi data fetched:', {
+        poolsCount: data.pools.length,
+        hasUserBalance: !!data.userBalance,
+        userBalance: data.userBalance
+      });
+      
       setPoolsData(data.pools);
       setUserBalance(data.userBalance || null);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('❌ Error fetching DeFi data:', error);
       setPoolsData([]);
       setUserBalance(null);
     } finally {

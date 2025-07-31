@@ -26,21 +26,36 @@ export default function TokenBalances({ walletAddress, chainId }: TokenBalancesP
 
   // Fetch real token balances from blockchain
   const fetchBalances = useCallback(async () => {
-    if (!chain || !walletAddress) return;
+    if (!chain || !walletAddress) {
+      console.log('⚠️ TokenBalances: Missing chain or wallet address', { chain: !!chain, walletAddress: !!walletAddress });
+      return;
+    }
 
     setIsLoading(true);
     try {
-      console.log(`Fetching balances for ${walletAddress} on chain ${chainId}`);
+      console.log(`🔍 TokenBalances: Fetching balances for ${walletAddress} on chain ${chainId}`);
+      console.log(`🔍 TokenBalances: Chain config:`, {
+        name: chain.name,
+        hasUSDC: !!chain.tokens.usdc,
+        hasECOP: !!chain.tokens.ecop,
+        usdcAddress: chain.tokens.usdc?.address,
+        ecopAddress: chain.tokens.ecop?.address
+      });
       
       // Fetch real balances from blockchain
       const realBalances = await fetchAllBalances(walletAddress, chainId);
       
+      console.log('✅ TokenBalances: Balances fetched successfully:', realBalances.map(b => ({
+        symbol: b.symbol,
+        balance: b.formattedBalance,
+        contract: b.contract,
+        error: b.error
+      })));
+      
       setBalances(realBalances);
       setLastUpdated(new Date());
-      
-      console.log('Balances fetched successfully:', realBalances);
     } catch (error) {
-      console.error("Error fetching balances:", error);
+      console.error("❌ TokenBalances: Error fetching balances:", error);
       
       // Set empty balances on error
       setBalances([]);
