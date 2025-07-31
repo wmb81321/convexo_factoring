@@ -4,277 +4,116 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useWallets } from "@privy-io/react-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { 
   TrendingUp, 
-  TrendingDown, 
-  BarChart3, 
-  Wallet, 
-  ArrowUpDown,
-  ExternalLink,
+  DollarSign, 
+  Percent, 
+  Activity, 
+  Users, 
+  ArrowUpRight,
   RefreshCw,
-  DollarSign,
-  Activity,
-  Target,
-  AlertTriangle,
-  PieChart,
-  Coins
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  BarChart3,
+  Wallet,
+  Zap
 } from "lucide-react";
-import { fetchAllPoolsData, type PoolData, type UserBalance } from "@/lib/pool-data";
-import { 
-  getSwapQuote, 
-  prepareSwapTransaction, 
-  checkTokenApproval, 
-  prepareApprovalTransaction, 
-  type SwapParams, 
-  type SwapQuote 
-} from "@/lib/uniswap-integration";
-import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
-import { SUPPORTED_CHAINS } from "@/lib/chains";
+import { fetchAllChainsBalances, getAggregatedBalanceSummary } from "@/lib/blockchain";
+import { getPoolAnalytics, getUserDeFiPortfolio } from "@/lib/uniswap-subgraph";
+import { fetchMarketData } from "@/lib/pool-data";
 
-export default function DeFiModule() {
+interface TokenBalance {
+  symbol: string;
+  name: string;
+  balance: string;
+  formattedBalance: string;
+  usdValue?: string;
+  contract?: string;
+  isLoading?: boolean;
+  error?: string;
+}
+
+interface PoolAnalytics {
+  poolId: string;
+  token0: { symbol: string; name: string; decimals: number };
+  token1: { symbol: string; name: string; decimals: number };
+  feeTier: number;
+  tvlUSD: number;
+  volume24H: number;
+  volumeUSD: number;
+  feesUSD: number;
+  apr: number;
+  price: number;
+  token0Price: number;
+  token1Price: number;
+  liquidity: string;
+  totalValueLockedToken0: number;
+  totalValueLockedToken1: number;
+  historicalData: any[];
+}
+
+interface UserPortfolio {
+  positions: any[];
+  totalValue: number;
+  totalFees: number;
+  positionCount: number;
+}
+
+export default function DeFi() {
   const { wallets } = useWallets();
   const wallet = wallets?.[0];
-  const { sendSponsoredTransaction, status: sponsorStatus } = useSponsoredTransactions();
+  
+  const [allChainsBalances, setAllChainsBalances] = useState<{ [chainId: number]: TokenBalance[] }>({});
+  const [poolAnalytics, setPoolAnalytics] = useState<PoolAnalytics | null>(null);
+  const [userPortfolio, setUserPortfolio] = useState<UserPortfolio | null>(null);
+  const [marketData, setMarketData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const [poolsData, setPoolsData] = useState<PoolData[]>([]);
-  const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const aggregatedSummary = getAggregatedBalanceSummary(allChainsBalances);
 
-  // Swap state - only USDC ↔ COPE
-  const [swapData, setSwapData] = useState({
-    fromToken: 'USDC',
-    toToken: 'COPE',
-    fromAmount: '',
-    toAmount: '',
-    slippage: 0.5,
-    priceImpact: 0,
-  });
-
-  const [currentQuote, setCurrentQuote] = useState<SwapQuote | null>(null);
-  const [isGettingQuote, setIsGettingQuote] = useState(false);
-  const [isSwapLoading, setIsSwapLoading] = useState(false);
-
-  // Get USDC-COPE pool data specifically
-  const usdcCopePool = poolsData.find(p => p.poolType === 'USDC/ECOP');
-  const ethUsdPool = poolsData.find(p => p.poolType === 'USDC/ETH');
-
-  // Fetch data
+  // Fetch all data
   const fetchData = useCallback(async () => {
+    if (!wallet?.address) {
+      console.log('⚠️ DeFi: No wallet address available');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      setIsDataLoading(true);
-      console.log('🔍 DeFi fetchData called with wallet:', wallet?.address);
+      console.log(`🔍 DeFi: Fetching data for ${wallet.address}`);
       
-      if (!wallet?.address) {
-        console.log('⚠️ No wallet address, skipping data fetch');
-        setPoolsData([]);
-        setUserBalance(null);
-        return;
-      }
+      // Fetch multi-chain balances
+      const balances = await fetchAllChainsBalances(wallet.address);
+      setAllChainsBalances(balances);
       
-      const data = await fetchAllPoolsData(wallet.address);
-      console.log('✅ DeFi data fetched:', {
-        poolsCount: data.pools.length,
-        hasUserBalance: !!data.userBalance,
-        userBalance: data.userBalance
-      });
+      // Fetch pool analytics from Uniswap subgraph
+      const analytics = await getPoolAnalytics();
+      setPoolAnalytics(analytics);
       
-      setPoolsData(data.pools);
-      setUserBalance(data.userBalance || null);
+      // Fetch user DeFi portfolio
+      const portfolio = await getUserDeFiPortfolio(wallet.address);
+      setUserPortfolio(portfolio);
+      
+      // Fetch market data for price feeds
+      const market = await fetchMarketData();
+      setMarketData(market);
+      
       setLastUpdated(new Date());
+      console.log('✅ DeFi: All data fetched successfully');
     } catch (error) {
-      console.error('❌ Error fetching DeFi data:', error);
-      setPoolsData([]);
-      setUserBalance(null);
+      console.error("❌ DeFi: Error fetching data:", error);
     } finally {
-      setIsDataLoading(false);
+      setIsLoading(false);
     }
   }, [wallet?.address]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [wallet?.address, fetchData]);
 
-  useEffect(() => {
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
-
-  // Calculate individual token USD values using REAL prices
-  const ethUsdValue = userBalance && ethUsdPool ? userBalance.eth * ethUsdPool.ethUsdcPrice! : 0;
-  const usdcUsdValue = userBalance ? userBalance.usdc * 1 : 0; // USDC ≈ $1
-  
-  // COPE USD value using REAL LP price (e.g., if 4174.57 COPE = 1 USDC, then 1 COPE = 0.0002395 USDC)
-  const copeUsdValue = userBalance && usdcCopePool && usdcCopePool.usdcEcopPrice 
-    ? userBalance.ecop * usdcCopePool.usdcEcopPrice! 
-    : 0;
-  
-  const totalUsdValue = ethUsdValue + usdcUsdValue + copeUsdValue;
-  
-  // Debug logging for price verification
-  React.useEffect(() => {
-    if (usdcCopePool) {
-      console.log('🔍 COPE Price Debug:', {
-        copePrice: usdcCopePool.usdcEcopPrice,
-        copeBalance: userBalance?.ecop || 0,
-        copeUsdValue: copeUsdValue,
-        exchangeRate: usdcCopePool.usdcEcopPrice ? `1 COPE = $${usdcCopePool.usdcEcopPrice.toFixed(8)}` : 'No price',
-        inverseRate: usdcCopePool.usdcEcopPrice ? `1 USDC = ${(1/usdcCopePool.usdcEcopPrice).toFixed(2)} COPE` : 'No price'
-      });
-    }
-  }, [usdcCopePool, userBalance, copeUsdValue]);
-
-  // Swap handling
-  const handleSwapInputChange = async (field: 'fromAmount' | 'toAmount', value: string) => {
-    if (!wallet?.address || !value || parseFloat(value) <= 0) {
-      setSwapData(prev => ({
-        ...prev,
-        [field]: value,
-        [field === 'fromAmount' ? 'toAmount' : 'fromAmount']: '',
-        priceImpact: 0,
-      }));
-      setCurrentQuote(null);
-      return;
-    }
-
-    const chainId = 11155111; // Sepolia
-    const chainConfig = SUPPORTED_CHAINS[chainId];
-    const usdcAddress = chainConfig.tokens.usdc?.address;
-    const copeAddress = chainConfig.tokens.ecop?.address;
-
-    if (!usdcAddress || !copeAddress) {
-      console.error('Token addresses not found');
-      return;
-    }
-
-    setSwapData(prev => ({ ...prev, [field]: value }));
-
-    if (field === 'fromAmount') {
-      setIsGettingQuote(true);
-      try {
-        const swapParams: SwapParams = {
-          tokenIn: swapData.fromToken === 'USDC' ? usdcAddress : copeAddress,
-          tokenOut: swapData.toToken === 'USDC' ? usdcAddress : copeAddress,
-          amountIn: value,
-          slippagePercent: swapData.slippage,
-          recipient: wallet.address,
-          chainId,
-        };
-
-        const quote = await getSwapQuote(swapParams);
-        setCurrentQuote(quote);
-        
-        setSwapData(prev => ({
-          ...prev,
-          toAmount: quote.amountOutFormatted,
-          priceImpact: quote.priceImpact,
-        }));
-      } catch (error) {
-        console.error('Error getting swap quote:', error);
-        setCurrentQuote(null);
-        setSwapData(prev => ({ ...prev, toAmount: '', priceImpact: 0 }));
-      } finally {
-        setIsGettingQuote(false);
-      }
-    }
-  };
-
-  const handleSwap = async () => {
-    if (!wallet?.address || !swapData.fromAmount || !currentQuote) {
-      alert('Please enter a valid amount and get a quote first.');
-      return;
-    }
-    
-    setIsSwapLoading(true);
-    
-    try {
-      const chainId = 11155111;
-      const chainConfig = SUPPORTED_CHAINS[chainId];
-      const usdcAddress = chainConfig.tokens.usdc?.address;
-      const copeAddress = chainConfig.tokens.ecop?.address;
-
-      if (!usdcAddress || !copeAddress) {
-        throw new Error('Token addresses not found');
-      }
-
-      const tokenInAddress = swapData.fromToken === 'USDC' ? usdcAddress : copeAddress;
-      const routerAddress = '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E';
-
-      // Check approval if needed
-      const needsApproval = !(await checkTokenApproval(
-        tokenInAddress,
-        wallet.address,
-        routerAddress,
-        swapData.fromAmount,
-        chainId
-      ));
-
-      if (needsApproval) {
-        const approvalTx = prepareApprovalTransaction(
-          tokenInAddress,
-          routerAddress,
-          swapData.fromAmount,
-          chainId
-        );
-
-        await sendSponsoredTransaction({
-          recipient: approvalTx.to,
-          amount: '0',
-          tokenAddress: tokenInAddress,
-          decimals: swapData.fromToken === 'USDC' ? 6 : 18,
-          chainId,
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      }
-
-      // Execute swap
-      const swapParams: SwapParams = {
-        tokenIn: tokenInAddress,
-        tokenOut: swapData.toToken === 'USDC' ? usdcAddress : copeAddress,
-        amountIn: swapData.fromAmount,
-        slippagePercent: swapData.slippage,
-        recipient: wallet.address,
-        chainId,
-      };
-
-      const swapTx = prepareSwapTransaction(swapParams, currentQuote, chainId);
-      
-      await sendSponsoredTransaction({
-        recipient: swapTx.to,
-        amount: '0',
-        tokenAddress: tokenInAddress,
-        decimals: swapData.fromToken === 'USDC' ? 6 : 18,
-        chainId,
-      });
-
-      alert(`🎉 Swap Executed!\n${swapData.fromAmount} ${swapData.fromToken} → ${swapData.toAmount} ${swapData.toToken}`);
-      
-      setSwapData(prev => ({ ...prev, fromAmount: '', toAmount: '', priceImpact: 0 }));
-      setCurrentQuote(null);
-      fetchData();
-      
-    } catch (error) {
-      console.error('Swap failed:', error);
-      alert(`Swap failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsSwapLoading(false);
-    }
-  };
-
-  const flipTokens = () => {
-    setSwapData(prev => ({
-      ...prev,
-      fromToken: prev.toToken,
-      toToken: prev.fromToken,
-      fromAmount: prev.toAmount,
-      toAmount: prev.fromAmount,
-    }));
-  };
-
-  // Format functions
   const formatNumber = (num: number, decimals: number = 2): string => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: decimals,
@@ -282,508 +121,339 @@ export default function DeFiModule() {
     }).format(num);
   };
 
-  const formatCurrency = (num: number): string => {
+  const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(num);
+    }).format(amount);
   };
 
+  const formatPercentage = (value: number): string => {
+    return `${value.toFixed(2)}%`;
+  };
+
+  if (!wallet?.address) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto" />
+              <h3 className="text-lg font-semibold">Connect Wallet</h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Connect your wallet to view DeFi analytics and manage your positions
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 fade-in">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold heading-institutional">DeFi Portfolio</h1>
-        <p className="text-lg text-institutional-light">
-          Electronic Colombian Peso (COPE) Trading & Analytics
-        </p>
-        <div className="flex items-center justify-center gap-2 text-sm text-institutional-light">
-          <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">DeFi Hub</h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Manage your DeFi positions and track pool analytics
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {lastUpdated && (
+            <span className="text-xs text-gray-500">
+              Updated {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={fetchData}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+            disabled={isLoading}
+            className="gap-2"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
           </Button>
         </div>
       </div>
 
-      {/* OWNERSHIP SECTION */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <PieChart className="w-6 h-6 text-primary" />
-          <h2 className="text-2xl font-bold heading-institutional">Portfolio Holdings</h2>
-        </div>
-
-        {/* Holdings Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Balance */}
-          <Card className="glass-card lg:col-span-2">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+      {/* Ownership Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="w-5 h-5" />
+            Ownership
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">💎</div>
                 <div>
-                  <p className="text-sm text-institutional-light font-medium">Total Portfolio Value</p>
-                  {isDataLoading ? (
-                    <div className="h-10 w-40 bg-gray-200 animate-pulse rounded"></div>
-                  ) : !userBalance ? (
-                    <p className="text-2xl font-bold text-gray-500">Connect Wallet</p>
-                  ) : (
-                    <p className="text-3xl font-bold heading-institutional">
-                      {formatCurrency(totalUsdValue)}
-                    </p>
-                  )}
-                  {userBalance && (
-                    <p className="text-sm text-institutional-light mt-2">
-                      {formatNumber(userBalance.eth, 4)} ETH • {formatNumber(userBalance.usdc, 2)} USDC • {formatNumber(userBalance.ecop, 2)} COPE
-                    </p>
-                  )}
-                </div>
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full">
-                  <Wallet className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* ETH Price */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-institutional-light font-medium">ETH Price</p>
-                  {isDataLoading ? (
-                    <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-2xl font-bold heading-institutional">
-                      {ethUsdPool ? formatCurrency(ethUsdPool.ethUsdcPrice!) : '$--.--'}
-                    </p>
-                  )}
-                </div>
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full">
-                  <DollarSign className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* COPE Price */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-institutional-light font-medium">COPE Price</p>
-                  {isDataLoading ? (
-                    <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-2xl font-bold heading-institutional">
-                      {usdcCopePool ? `$${formatNumber(usdcCopePool.usdcEcopPrice!, 4)}` : '$--.----'}
-                    </p>
-                  )}
-                </div>
-                <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-full">
-                  <Coins className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Individual Holdings */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* ETH Holding */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-white font-bold">
-                    Ξ
+                  <div className="font-semibold">{formatNumber(aggregatedSummary.totalEth, 6)} ETH</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    {marketData?.ethPrice ? formatCurrency(aggregatedSummary.totalEth * marketData.ethPrice) : 'Loading...'}
                   </div>
-                  <div>
-                    <p className="font-semibold text-institutional">Ethereum</p>
-                    <p className="text-sm text-institutional-light">ETH</p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">Quantity</span>
-                  <span className="font-medium">
-                    {userBalance ? formatNumber(userBalance.eth, 6) : '0.000000'} ETH
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">USD Value</span>
-                  <span className="font-bold text-institutional">
-                    {formatCurrency(ethUsdValue)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">Price Source</span>
-                  <span className="text-xs text-institutional-light">CoinGecko</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* USDC Holding */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                    $
-                  </div>
-                  <div>
-                    <p className="font-semibold text-institutional">USD Coin</p>
-                    <p className="text-sm text-institutional-light">USDC</p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">Quantity</span>
-                  <span className="font-medium">
-                    {userBalance ? formatNumber(userBalance.usdc, 2) : '0.00'} USDC
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">USD Value</span>
-                  <span className="font-bold text-institutional">
-                    {formatCurrency(usdcUsdValue)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">Price Source</span>
-                  <span className="text-xs text-institutional-light">CoinGecko</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* COPE Holding */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold">
-                    C
-                  </div>
-                  <div>
-                    <p className="font-semibold text-institutional">Electronic Colombian Peso</p>
-                    <p className="text-sm text-institutional-light">COPE</p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">Quantity</span>
-                  <span className="font-medium">
-                    {userBalance ? formatNumber(userBalance.ecop, 2) : '0.00'} COPE
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">USD Value</span>
-                  <span className="font-bold text-institutional">
-                    {formatCurrency(copeUsdValue)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-institutional-light">Price Source</span>
-                  <span className="text-xs text-institutional-light">USDC-COPE LP</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* TOKEN SWAP SECTION */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <ArrowUpDown className="w-6 h-6 text-primary" />
-          <h2 className="text-2xl font-bold heading-institutional">Token Swap</h2>
-        </div>
-
-        <Card className="glass-card max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center">USDC ↔ COPE Exchange</CardTitle>
-            <p className="text-sm text-institutional-light text-center">
-              Trade using the USDC-COPE liquidity pool
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* From Token */}
-            <div className="space-y-2">
-              <Label htmlFor="from-amount">From</Label>
-              <div className="relative">
-                <Input
-                  id="from-amount"
-                  type="number"
-                  placeholder="0.00"
-                  value={swapData.fromAmount}
-                  onChange={(e) => handleSwapInputChange('fromAmount', e.target.value)}
-                  className="pr-20"
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <span className="text-sm font-medium text-institutional">
-                    {swapData.fromToken}
-                  </span>
                 </div>
               </div>
             </div>
-
-            {/* Swap Direction Button */}
-            <div className="flex justify-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={flipTokens}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-              >
-                <ArrowUpDown className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* To Token */}
-            <div className="space-y-2">
-              <Label htmlFor="to-amount">To</Label>
-              <div className="relative">
-                <Input
-                  id="to-amount"
-                  type="number"
-                  placeholder={isGettingQuote ? "Getting quote..." : "0.00"}
-                  value={swapData.toAmount}
-                  className="pr-20"
-                  readOnly
-                  disabled={isGettingQuote}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                  {isGettingQuote && <RefreshCw className="w-3 h-3 animate-spin" />}
-                  <span className="text-sm font-medium text-institutional">
-                    {swapData.toToken}
-                  </span>
+            
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">💵</div>
+                <div>
+                  <div className="font-semibold">{formatNumber(aggregatedSummary.totalUsdc, 2)} USDC</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    {formatCurrency(aggregatedSummary.totalUsdc)}
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Swap Details */}
-            {swapData.fromAmount && swapData.toAmount && currentQuote && (
-              <div className="p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-institutional-light">Price Impact</span>
-                  <span className={`font-medium ${
-                    currentQuote.priceImpact > 5 ? 'text-red-600' : 
-                    currentQuote.priceImpact > 1 ? 'text-yellow-600' : 'text-green-600'
-                  }`}>
-                    {formatNumber(currentQuote.priceImpact, 2)}%
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-institutional-light">Slippage Tolerance</span>
-                  <span className="font-medium text-institutional">{swapData.slippage}%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-institutional-light">Network Fee</span>
-                  <span className="font-medium text-green-600">$0.00 (Sponsored)</span>
-                </div>
-              </div>
-            )}
-
-            {/* Swap Button */}
-            <Button
-              onClick={handleSwap}
-              disabled={!swapData.fromAmount || !swapData.toAmount || !currentQuote || isSwapLoading || isGettingQuote}
-              className="w-full btn-institutional h-12"
-            >
-              {isSwapLoading ? (
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Executing Swap...
-                </div>
-              ) : isGettingQuote ? (
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Getting Quote...
-                </div>
-              ) : !currentQuote ? (
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Enter Amount for Quote
-                </div>
-              ) : (
-                `Swap ${swapData.fromToken} → ${swapData.toToken}`
-              )}
-            </Button>
-
-            {swapData.priceImpact > 5 && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <AlertTriangle className="w-4 h-4 text-red-600" />
-                <span className="text-sm text-red-600">
-                  High price impact! Consider smaller amounts.
-                </span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* LIQUIDITY POOL ANALYTICS SECTION */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <BarChart3 className="w-6 h-6 text-primary" />
-          <h2 className="text-2xl font-bold heading-institutional">USDC-COPE Pool Analytics</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Market Price */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+            
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">🚀</div>
                 <div>
-                  <p className="text-sm text-institutional-light font-medium">COPE Market Price</p>
-                  {isDataLoading ? (
-                    <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-2xl font-bold heading-institutional">
-                      {usdcCopePool ? `$${formatNumber(usdcCopePool.usdcEcopPrice!, 4)}` : '$--.----'}
-                    </p>
-                  )}
-                </div>
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full">
-                  <DollarSign className="w-6 h-6 text-blue-600" />
+                  <div className="font-semibold">{formatNumber(aggregatedSummary.totalCope, 2)} COPE</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    {poolAnalytics?.token1Price ? formatCurrency(aggregatedSummary.totalCope * poolAnalytics.token1Price) : 'Loading...'}
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* TVL */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-institutional-light font-medium">Total Value Locked</p>
-                  {isDataLoading ? (
-                    <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-2xl font-bold heading-institutional">
-                      {usdcCopePool ? formatCurrency(usdcCopePool.tvlUSD) : '$-.--'}
-                    </p>
-                  )}
-                </div>
-                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-full">
-                  <Activity className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* APR */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-institutional-light font-medium">Annual Percentage Rate</p>
-                  {isDataLoading ? (
-                    <div className="h-8 w-20 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-2xl font-bold heading-institutional">
-                      {usdcCopePool ? `${formatNumber(usdcCopePool.apr, 2)}%` : '--.--'}
-                    </p>
-                  )}
-                </div>
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 24h Volume */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-institutional-light font-medium">24h Volume</p>
-                  {isDataLoading ? (
-                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-2xl font-bold heading-institutional">
-                      {usdcCopePool ? formatCurrency(usdcCopePool.volume24h) : '$-.--'}
-                    </p>
-                  )}
-                </div>
-                <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-full">
-                  <Target className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-              <div className="mt-2">
-                <p className="text-sm text-institutional-light">
-                  Fees: {usdcCopePool ? formatCurrency(usdcCopePool.fees24h) : '$-.--'}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-semibold">Total Portfolio Value</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Combined value across all chains
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Pool Details */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle>Pool Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-institutional-light">Token Pair</p>
-                <p className="font-semibold text-institutional">USDC/COPE</p>
-              </div>
-              <div className="p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-institutional-light">Fee Tier</p>
-                <p className="font-semibold text-institutional">0.30%</p>
-              </div>
-              <div className="p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-institutional-light">Network</p>
-                <p className="font-semibold text-institutional">Ethereum Sepolia</p>
-              </div>
-              <div className="p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-institutional-light">LP Contract</p>
-                <p className="font-semibold text-institutional text-xs">
-                  0xE03A1074c86CFeDd5C142C4F04F1a1536e203543
-                </p>
+              <div className="text-right">
+                <div className="text-xl font-bold">
+                  {(() => {
+                    const ethValue = marketData?.ethPrice ? aggregatedSummary.totalEth * marketData.ethPrice : 0;
+                    const usdcValue = aggregatedSummary.totalUsdc;
+                    const copeValue = poolAnalytics?.token1Price ? aggregatedSummary.totalCope * poolAnalytics.token1Price : 0;
+                    return formatCurrency(ethValue + usdcValue + copeValue);
+                  })()}
+                </div>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex flex-wrap gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => window.open('https://app.uniswap.org/positions/v4/ethereum_sepolia/12714', '_blank')}
-                  className="flex items-center gap-2"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  View on Uniswap
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.open('https://sepolia.etherscan.io/token/0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219', '_blank')}
-                  className="flex items-center gap-2"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  COPE Token Contract
+      {/* Liquidity Pool Analytics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5" />
+            Liquidity Pool Analytics
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {poolAnalytics ? (
+            <>
+              {/* Pool Overview */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      {poolAnalytics.token0.symbol}-{poolAnalytics.token1.symbol} Pool
+                    </h3>
+                                         <p className="text-sm text-gray-600 dark:text-gray-300">
+                       Fee Tier: {poolAnalytics.feeTier / 1000000}%
+                     </p>
+                  </div>
+                  <Badge variant="secondary" className="bg-green-100 text-green-700">
+                    Active
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {formatCurrency(poolAnalytics.tvlUSD)}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">TVL</div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">
+                      {formatCurrency(poolAnalytics.volume24H)}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">24h Volume</div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {formatPercentage(poolAnalytics.apr)}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">APR</div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {formatNumber(poolAnalytics.price, 6)}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Price</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Pool Metrics</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <span className="text-sm">Total Fees (24h)</span>
+                      <span className="font-medium">{formatCurrency(poolAnalytics.feesUSD)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <span className="text-sm">Liquidity</span>
+                      <span className="font-medium">{formatNumber(parseFloat(poolAnalytics.liquidity), 0)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <span className="text-sm">{poolAnalytics.token0.symbol} Locked</span>
+                      <span className="font-medium">{formatNumber(poolAnalytics.totalValueLockedToken0, 2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <span className="text-sm">{poolAnalytics.token1.symbol} Locked</span>
+                      <span className="font-medium">{formatNumber(poolAnalytics.totalValueLockedToken1, 2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Price Information</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <span className="text-sm">{poolAnalytics.token0.symbol} Price</span>
+                      <span className="font-medium">{formatNumber(poolAnalytics.token0Price, 6)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <span className="text-sm">{poolAnalytics.token1.symbol} Price</span>
+                      <span className="font-medium">{formatNumber(poolAnalytics.token1Price, 6)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <span className="text-sm">Exchange Rate</span>
+                      <span className="font-medium">
+                        1 {poolAnalytics.token0.symbol} = {formatNumber(poolAnalytics.token0Price, 6)} {poolAnalytics.token1.symbol}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span className="text-sm text-gray-500">Loading pool analytics...</span>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* User Positions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Your Positions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {userPortfolio ? (
+            userPortfolio.positions.length > 0 ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-blue-600">{userPortfolio.positionCount}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Active Positions</div>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-green-600">{formatCurrency(userPortfolio.totalValue)}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Total Value</div>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(userPortfolio.totalFees)}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Collected Fees</div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {userPortfolio.positions.map((position, index) => (
+                    <div key={position.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="font-semibold">
+                            {position.pool.token0.symbol}-{position.pool.token1.symbol}
+                          </h4>
+                                                     <p className="text-sm text-gray-600 dark:text-gray-300">
+                             Fee Tier: {position.pool.feeTier / 1000000}%
+                           </p>
+                        </div>
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">
+                          Active
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-300">Liquidity:</span>
+                          <div className="font-medium">{formatNumber(parseFloat(position.liquidity), 0)}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-300">Value:</span>
+                          <div className="font-medium">{formatCurrency(position.totalDepositedValue)}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-300">Fees:</span>
+                          <div className="font-medium">{formatCurrency(position.totalCollectedFees)}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-300">Range:</span>
+                          <div className="font-medium">{position.tickLower} - {position.tickUpper}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Active Positions</h3>
+                                 <p className="text-gray-600 dark:text-gray-300 mb-4">
+                   You don&apos;t have any active liquidity positions yet
+                 </p>
+                <Button className="gap-2">
+                  <ArrowUpRight className="w-4 h-4" />
+                  Add Liquidity
                 </Button>
               </div>
-              <div className="mt-4 text-center">
-                <p className="text-xs text-institutional-light">
-                  Price data sourced from USDC-COPE LP • Market data from CoinGecko API
-                </p>
+            )
+          ) : (
+            <div className="text-center py-8">
+              <div className="flex items-center justify-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span className="text-sm text-gray-500">Loading positions...</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -73,7 +73,7 @@ const publicClient = createPublicClient({
 /**
  * Fetch market data combining CoinGecko (for ETH) and LP data (for ECOP)
  */
-async function fetchMarketData(): Promise<{
+export async function fetchMarketData(): Promise<{
   ethPrice: number;
   ecopPrice: number;
   usdcEcopRate: number;
