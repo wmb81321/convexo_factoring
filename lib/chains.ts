@@ -36,7 +36,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
       symbol: "ETH",
       decimals: 18,
     },
-    rpcUrl: "https://rpc.sepolia.org",
+    rpcUrl: "https://ethereum-sepolia-rpc.publicnode.com",
     blockExplorer: "https://sepolia.etherscan.io",
     pimlicoBundlerUrl: "https://public.pimlico.io/v2/11155111/rpc",
     tokens: {

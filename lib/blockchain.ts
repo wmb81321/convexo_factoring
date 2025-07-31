@@ -17,7 +17,7 @@ const getPublicClient = (chainId: number) => {
       case 11155111: // Ethereum Sepolia
         return createPublicClient({
           chain: sepolia,
-          transport: http('https://rpc.sepolia.org'),
+          transport: http('https://ethereum-sepolia-rpc.publicnode.com'),
         });
       case 11155420: // Optimism Sepolia  
         return createPublicClient({
