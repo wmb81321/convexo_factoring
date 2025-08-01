@@ -43,22 +43,6 @@ export const Providers = (props: PropsWithChildren) => {
         },
 
 
-        walletChainType: "ethereum-and-solana",
-
-        // Wallet list for the embedded wallet
-        walletList: [
-          "detected_wallets",
-          "metamask",
-          "phantom",
-          "coinbase_wallet",
-          "base_account",
-          "rainbow",
-          "solflare",
-          "backpack",
-          "okx_wallet",
-          "wallet_connect"
-        ],
-
         // Supported chains configuration (must match dashboard setup)
         supportedChains: [
           {
