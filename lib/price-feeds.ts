@@ -26,13 +26,30 @@ export async function fetchTokenPrice(coinId: string): Promise<PriceData> {
   try {
     const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}` +
       `&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`;
-    const response = await fetch(url);
+    
+    console.log(`🔍 Fetching price for ${coinId} from:`, url);
+    
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
+    console.log(`📊 API response for ${coinId}:`, data);
+    
     const tokenData = data[coinId];
     
     if (!tokenData) {

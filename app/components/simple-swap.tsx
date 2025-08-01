@@ -28,7 +28,7 @@ const SEPOLIA_TOKEN_LIST = [
     name: "Electronic Colombian Peso",
     address: "0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219",
     symbol: "COPE",
-    decimals: 18,
+    decimals: 6,
     chainId: 11155111,
     logoURI: "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
   }
@@ -36,7 +36,7 @@ const SEPOLIA_TOKEN_LIST = [
 
 // RPC endpoints for Ethereum Sepolia
 const jsonRpcUrlMap = {
-  11155111: ['https://rpc.sepolia.org', 'https://ethereum-sepolia.blockpi.network/v1/rpc/public']
+  11155111: ['https://ethereum-sepolia-rpc.publicnode.com', 'https://ethereum-sepolia.blockpi.network/v1/rpc/public']
 };
 
 export default function SimpleSwap() {
@@ -67,6 +67,19 @@ export default function SimpleSwap() {
             defaultInputTokenAddress="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
             defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219"
             width={380}
+            theme={{
+              primary: '#4B66F3',
+              secondary: '#F3F4F6',
+              interactive: '#E5E7EB',
+              container: '#FFFFFF',
+              module: '#FFFFFF',
+              accent: '#4B66F3',
+              outline: '#E5E7EB',
+              dialog: '#FFFFFF',
+            }}
+            onError={(error) => {
+              console.error('SwapWidget error:', error);
+            }}
           />
         </div>
         <div className="p-4 text-center">
