@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { usePrivy } from "@privy-io/react-auth";
 import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { useState } from "react";
+import React from "react";
 import ChainSelector from "./chain-selector";
 import TokenBalances from "./token-balances";
 import { getChainById, DEFAULT_CHAIN } from "@/lib/chains";
@@ -14,6 +15,7 @@ export default function PrivySmartWallet() {
   const { client: smartWalletClient } = useSmartWallets();
   const [selectedChainId, setSelectedChainId] = useState(DEFAULT_CHAIN.chainId);
   const [isExporting, setIsExporting] = useState(false);
+  const [smartWalletAddress, setSmartWalletAddress] = useState<string | null>(null);
 
   // Get embedded wallet (foundation for smart wallet functionality)
   const embeddedWallet = user?.linkedAccounts?.find(
@@ -21,15 +23,35 @@ export default function PrivySmartWallet() {
   );
   const selectedChain = getChainById(selectedChainId);
 
+  // Get the actual smart wallet address from the client
+  React.useEffect(() => {
+    const getSmartWalletAddress = async () => {
+      if (smartWalletClient && !smartWalletAddress) {
+        try {
+          // The smart wallet client has the actual smart wallet address
+          const address = smartWalletClient.account?.address;
+          if (address) {
+            setSmartWalletAddress(address);
+          }
+        } catch (error) {
+          console.error('Error getting smart wallet address:', error);
+        }
+      }
+    };
+
+    getSmartWalletAddress();
+  }, [smartWalletClient, smartWalletAddress]);
+
   const handleExportWallet = async () => {
-    if (!embeddedWallet) return;
+    const addressToShow = smartWalletAddress || embeddedWallet?.address;
+    if (!addressToShow) return;
     
     setIsExporting(true);
     try {
-      console.log('Wallet address:', embeddedWallet.address);
-      alert(`Wallet address: ${embeddedWallet.address}`);
+      console.log('Smart wallet address:', addressToShow);
+      alert(`Smart wallet address: ${addressToShow}`);
     } catch (error) {
-      console.error("Error with wallet:", error);
+      console.error("Error with smart wallet:", error);
     } finally {
       setIsExporting(false);
     }
@@ -152,13 +174,13 @@ export default function PrivySmartWallet() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Smart Wallet:</span>
-                  <span className="font-medium">{embeddedWallet ? '✅ Active' : '❌ Not Found'}</span>
+                  <span className="font-medium">{smartWalletAddress ? '✅ Active' : '❌ Loading...'}</span>
                 </div>
               </div>
             </div>
 
-            {/* Smart Wallet Details - EMBEDDED WALLET WITH SMART FEATURES */}
-            {embeddedWallet ? (
+            {/* Smart Wallet Details - ACTUAL SMART WALLET ADDRESS */}
+            {smartWalletAddress ? (
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                 <h4 className="font-semibold mb-2 text-blue-800 dark:text-blue-400">
                   🚀 Smart Wallet (Account Abstraction)
@@ -166,21 +188,41 @@ export default function PrivySmartWallet() {
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-1">
-                      Address
+                      Smart Wallet Address
                     </label>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 p-2 bg-white dark:bg-gray-700 rounded border text-sm font-mono">
-                        {embeddedWallet.address}
+                        {smartWalletAddress}
                       </code>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => navigator.clipboard.writeText(embeddedWallet.address)}
+                        onClick={() => navigator.clipboard.writeText(smartWalletAddress)}
                       >
                         Copy
                       </Button>
                     </div>
                   </div>
+
+                  {embeddedWallet && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-1">
+                        Embedded Wallet (Owner)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 p-2 bg-gray-100 dark:bg-gray-700 rounded border text-xs font-mono text-gray-600">
+                          {embeddedWallet.address}
+                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigator.clipboard.writeText(embeddedWallet.address)}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex gap-2">
                     <Button
@@ -194,7 +236,7 @@ export default function PrivySmartWallet() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(`${selectedChain?.blockExplorer}/address/${embeddedWallet.address}`, '_blank')}
+                      onClick={() => window.open(`${selectedChain?.blockExplorer}/address/${smartWalletAddress}`, '_blank')}
                     >
                       View on Explorer
                     </Button>
@@ -204,10 +246,10 @@ export default function PrivySmartWallet() {
             ) : (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
                 <h4 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
-                  ⚠️ Wallet Not Found
+                  ⚠️ Smart Wallet Loading
                 </h4>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  Wallet is being created. Please refresh if this persists.
+                  Smart wallet is being initialized. Please wait...
                 </p>
               </div>
             )}
@@ -215,10 +257,10 @@ export default function PrivySmartWallet() {
         </Card>
       </div>
 
-      {/* Token Balances - FROM WALLET WITH SMART FEATURES */}
-      {embeddedWallet && (
+      {/* Token Balances - FROM SMART WALLET ONLY */}
+      {smartWalletAddress && (
         <TokenBalances
-          walletAddress={embeddedWallet.address}
+          walletAddress={smartWalletAddress}
         />
       )}
 

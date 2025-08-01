@@ -11,18 +11,25 @@ export function useSmartWallet() {
   const { user } = usePrivy();
   const { client } = useSmartWallets();
 
-  const wallet = useMemo(() => {
+  const embeddedWallet = useMemo(() => {
     // Get embedded wallet (foundation for smart wallet functionality)
     return user?.linkedAccounts?.find(
       (account) => account.type === 'wallet'
     ) || null;
   }, [user]);
 
+  const smartWalletAddress = useMemo(() => {
+    // Get the actual smart wallet address from the client
+    return client?.account?.address || null;
+  }, [client]);
+
   return {
-    wallet,
+    wallet: embeddedWallet,
     client,
     isSmartWallet: true, // Always true since we only use smart wallets
     canUseGasSponsorship: true, // Always true for smart wallets
-    address: wallet?.address,
+    address: smartWalletAddress, // Use smart wallet address, not embedded
+    embeddedWalletAddress: embeddedWallet?.address,
+    smartWalletAddress,
   };
 }

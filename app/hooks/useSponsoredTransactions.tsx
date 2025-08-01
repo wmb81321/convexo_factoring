@@ -36,9 +36,11 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
     isSponsored: false,
   });
 
-  const smartWallet = user?.linkedAccounts?.find(
+  const embeddedWallet = user?.linkedAccounts?.find(
     (account) => account.type === 'wallet'
   );
+
+  const smartWalletAddress = client?.account?.address;
 
   const reset = useCallback(() => {
     setStatus({
@@ -48,7 +50,7 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
   }, []);
 
   const checkSponsorship = useCallback(async (params: TokenTransferParams): Promise<boolean> => {
-    if (!smartWallet?.address) {
+    if (!smartWalletAddress) {
       throw new Error('No smart wallet connected');
     }
 
@@ -58,7 +60,7 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
           to: params.recipient,
           chainId: params.chainId,
         },
-        smartWallet.address
+        smartWalletAddress
       );
 
       return isEligible;
@@ -66,10 +68,10 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
       console.warn('Failed to check sponsorship eligibility:', error);
       return false;
     }
-  }, [smartWallet]);
+  }, [smartWalletAddress]);
 
   const sendSponsoredTransaction = useCallback(async (params: TokenTransferParams) => {
-    if (!smartWallet?.address) {
+    if (!smartWalletAddress) {
       throw new Error('No smart wallet connected');
     }
 
@@ -169,7 +171,7 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
         throw error;
       }
     }
-  }, [smartWallet, client]);
+  }, [smartWalletAddress, client]);
 
   return {
     sendSponsoredTransaction,
