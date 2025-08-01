@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import Header from "./components/header";
 import LoginCard from "./components/login-card";
 import Navigation from "./components/navigation";
@@ -13,7 +13,6 @@ import { ModuleType } from "./types/modules";
 
 export default function Home() {
   const { authenticated, ready } = usePrivy();
-  const { wallets } = useWallets();
   const [activeModule, setActiveModule] = useState<ModuleType>('home');
 
   // Professional loading state

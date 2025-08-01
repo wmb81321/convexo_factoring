@@ -1,6 +1,6 @@
 "use client";
 
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import { 
   Card, 
   CardContent, 
@@ -18,7 +18,6 @@ import PrivySmartWallet from "../components/privy-smart-wallet";
 
 export default function Home() {
   const { user, authenticated } = usePrivy();
-  const { wallets } = useWallets();
 
   // Show smart wallet interface when authenticated
   // (smart wallets are created automatically)

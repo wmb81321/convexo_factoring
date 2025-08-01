@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback } from 'react';
-import { useWallets, useSendTransaction } from '@privy-io/react-auth';
+import { usePrivy } from '@privy-io/react-auth';
+import { useSmartWallets } from '@privy-io/react-auth/smart-wallets';
 import { 
   prepareSponsoredTokenTransfer, 
   isGasSponsorshipAvailable,
@@ -27,15 +28,17 @@ export interface UseSponsoredTransactionsReturn {
  * Integrates Privy smart wallets with proper Alchemy Gas Manager API
  */
 export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
-  const { wallets } = useWallets();
-  const { sendTransaction } = useSendTransaction();
+  const { user } = usePrivy();
+  const { client } = useSmartWallets();
   
   const [status, setStatus] = useState<SponsoredTransactionStatus>({
     isLoading: false,
     isSponsored: false,
   });
 
-  const smartWallet = wallets?.find(wallet => wallet.address);
+  const smartWallet = user?.linkedAccounts?.find(
+    (account) => account.type === 'smart_wallet'
+  );
 
   const reset = useCallback(() => {
     setStatus({
@@ -70,6 +73,10 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
       throw new Error('No smart wallet connected');
     }
 
+    if (!client) {
+      throw new Error('Smart wallet client not available');
+    }
+
     setStatus(prev => ({ ...prev, isLoading: true, error: undefined }));
 
     try {
@@ -94,16 +101,16 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
 
       console.log('📝 Transaction parameters:', txParams);
 
-      // Try to send the transaction
-      const result = await sendTransaction(txParams);
+      // Try to send the transaction using smart wallet client
+      const txHash = await client.sendTransaction(txParams);
       
       setStatus(prev => ({ 
         ...prev, 
         isLoading: false, 
-        transactionHash: result.hash 
+        transactionHash: txHash 
       }));
 
-      console.log('✅ Transaction sent successfully:', result.hash);
+      console.log('✅ Transaction sent successfully:', txHash);
       
     } catch (error) {
       console.error('❌ Transaction failed:', error);
@@ -130,15 +137,15 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
                 gasLimit: BigInt(21000), // Standard ETH transfer gas
               };
 
-          const fallbackResult = await sendTransaction(txParams);
+          const fallbackTxHash = await client.sendTransaction(txParams);
           
           setStatus(prev => ({ 
             ...prev, 
             isLoading: false, 
-            transactionHash: fallbackResult.hash 
+            transactionHash: fallbackTxHash 
           }));
 
-          console.log('✅ Fallback transaction sent:', fallbackResult.hash);
+          console.log('✅ Fallback transaction sent:', fallbackTxHash);
           
         } catch (fallbackError) {
           console.error('❌ Fallback transaction also failed:', fallbackError);
@@ -162,7 +169,7 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
         throw error;
       }
     }
-  }, [smartWallet, sendTransaction]);
+  }, [smartWallet, client]);
 
   return {
     sendSponsoredTransaction,

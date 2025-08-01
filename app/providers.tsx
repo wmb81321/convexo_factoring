@@ -24,23 +24,23 @@ export const Providers = (props: PropsWithChildren) => {
     <PrivyProvider
       appId={privyAppId}
       config={{
-        // Login methods - prioritize social logins for smart wallets
-        loginMethods: ['google', 'apple', 'telegram', 'wallet'],
+        // Login methods - social logins for smart wallets ONLY
+        loginMethods: ['google', 'apple', 'telegram'],
         
         // Appearance customization
         appearance: {
           theme: 'light',
           accentColor: '#4B66F3',
           logo: '/convexo-logo.png',
-          showWalletLoginFirst: false, // Social login first, smart wallets by default
+          showWalletLoginFirst: false,
         },
         
-        // Smart wallet configuration - DEFAULT for all users
+        // DISABLE embedded wallets - we only want smart wallets
         embeddedWallets: {
-          createOnLogin: 'all-users', // ALL users get smart wallets automatically
+          createOnLogin: 'off', // No embedded wallets
           requireUserPasswordOnCreate: false,
-          showWalletUIs: false, // No embedded wallet UI - smart wallets only
-        },
+          showWalletUIs: false,
+        },  
 
 
         // Supported chains configuration (must match dashboard setup)
@@ -94,11 +94,11 @@ export const Providers = (props: PropsWithChildren) => {
     >
       <SmartWalletsProvider
         config={{
-                  // Alchemy Gas Manager configuration for proper sponsorship
-        paymasterContext: {
-          policyId: process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID,
-          rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-        },
+          // Alchemy Gas Manager configuration for proper sponsorship
+          paymasterContext: {
+            policyId: process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID,
+            rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
+          },
         }}
       >
         <Provider store={store}>

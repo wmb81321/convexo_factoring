@@ -2,23 +2,23 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
+import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { useState } from "react";
 import ChainSelector from "./chain-selector";
 import TokenBalances from "./token-balances";
 import { getChainById, DEFAULT_CHAIN } from "@/lib/chains";
 
 export default function PrivySmartWallet() {
-  const { user, logout, exportWallet, connectWallet } = usePrivy();
-  const { wallets } = useWallets();
+  const { user, logout } = usePrivy();
+  const { client: smartWalletClient } = useSmartWallets();
   const [selectedChainId, setSelectedChainId] = useState(DEFAULT_CHAIN.chainId);
   const [isExporting, setIsExporting] = useState(false);
-  const [isConnectingExternal, setIsConnectingExternal] = useState(false);
 
-  // Smart wallet is the primary wallet (embedded)
-  const smartWallet = wallets?.find(wallet => wallet.walletClientType === 'privy');
-  // External wallets (MetaMask, WalletConnect, etc.)
-  const externalWallets = wallets?.filter(wallet => wallet.walletClientType !== 'privy');
+  // Get smart wallet from user's linked accounts (NOT from wallets)
+  const smartWallet = user?.linkedAccounts?.find(
+    (account) => account.type === 'smart_wallet'
+  );
   const selectedChain = getChainById(selectedChainId);
 
   const handleExportWallet = async () => {
@@ -26,22 +26,13 @@ export default function PrivySmartWallet() {
     
     setIsExporting(true);
     try {
-      await exportWallet({ address: smartWallet.address });
+      // Smart wallets don't need export in the same way
+      console.log('Smart wallet address:', smartWallet.address);
+      alert(`Smart wallet address: ${smartWallet.address}`);
     } catch (error) {
-      console.error("Error exporting wallet:", error);
+      console.error("Error with smart wallet:", error);
     } finally {
       setIsExporting(false);
-    }
-  };
-
-  const handleConnectExternalWallet = async () => {
-    setIsConnectingExternal(true);
-    try {
-      await connectWallet();
-    } catch (error) {
-      console.error("Error connecting external wallet:", error);
-    } finally {
-      setIsConnectingExternal(false);
     }
   };
 
@@ -60,7 +51,7 @@ export default function PrivySmartWallet() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span className="text-2xl">🚀</span>
-            Convexo Smart Wallet Connected!
+            Convexo Smart Wallet Active!
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -70,7 +61,7 @@ export default function PrivySmartWallet() {
               🎉 Welcome to the Future of Web3!
             </h3>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Your smart wallet is now active with gasless transactions powered by Alchemy on multiple testnets.
+              Your smart wallet is active with gasless transactions powered by Alchemy across multiple testnets. No embedded wallets needed!
             </p>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
@@ -161,17 +152,17 @@ export default function PrivySmartWallet() {
                   <span className="font-mono text-xs">{user?.phone?.number || 'Not provided'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Wallets:</span>
-                  <span className="font-medium">{wallets?.length || 0}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Smart Wallet:</span>
+                  <span className="font-medium">{smartWallet ? '✅ Active' : '❌ Not Found'}</span>
                 </div>
               </div>
             </div>
 
-            {/* Smart Wallet Details - PRIMARY WALLET */}
-            {smartWallet && (
+            {/* Smart Wallet Details - ONLY WALLET TYPE */}
+            {smartWallet ? (
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                 <h4 className="font-semibold mb-2 text-blue-800 dark:text-blue-400">
-                  🚀 Smart Wallet (Primary)
+                  🚀 Smart Wallet
                 </h4>
                 <div className="space-y-3">
                   <div>
@@ -199,7 +190,7 @@ export default function PrivySmartWallet() {
                       onClick={handleExportWallet}
                       disabled={isExporting}
                     >
-                      {isExporting ? "Exporting..." : "Export Private Key"}
+                      {isExporting ? "View Address..." : "View Address"}
                     </Button>
                     <Button
                       variant="outline"
@@ -211,42 +202,16 @@ export default function PrivySmartWallet() {
                   </div>
                 </div>
               </div>
+            ) : (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
+                <h4 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
+                  ⚠️ Smart Wallet Not Found
+                </h4>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  Smart wallet is being created. Please refresh if this persists.
+                </p>
+              </div>
             )}
-
-            {/* External Wallet Connection Option */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <h4 className="font-semibold mb-2">External Wallet (Optional)</h4>
-              {externalWallets && externalWallets.length > 0 ? (
-                <div className="space-y-2">
-                  {externalWallets.map((wallet, index) => (
-                    <div key={index} className="bg-white dark:bg-gray-700 rounded p-2 border">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-mono">{formatAddress(wallet.address)}</span>
-                        <span className="text-green-600">✅ Connected</span>
-                      </div>
-                    </div>
-                  ))}
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    External wallets can be used for direct dApp interaction
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleConnectExternalWallet}
-                    disabled={isConnectingExternal}
-                    className="w-full"
-                  >
-                    {isConnectingExternal ? "Connecting..." : "Connect External Wallet"}
-                  </Button>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Optional: Connect MetaMask or other wallets for direct dApp interaction
-                  </p>
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
       </div>

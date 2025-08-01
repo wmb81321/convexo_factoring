@@ -1,24 +1,28 @@
 "use client";
 
-import { useWallets } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
+import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { useMemo } from "react";
 
 /**
  * Simple hook that returns the smart wallet (since we only use smart wallets)
  */
 export function useSmartWallet() {
-  const { wallets } = useWallets();
+  const { user } = usePrivy();
+  const { client } = useSmartWallets();
 
   const wallet = useMemo(() => {
-    // Since we only create smart wallets, just return the first wallet
-    // All users will have a smart wallet created automatically
-    return wallets && wallets.length > 0 ? wallets[0] : null;
-  }, [wallets]);
+    // Get smart wallet from user's linked accounts (proper way)
+    return user?.linkedAccounts?.find(
+      (account) => account.type === 'smart_wallet'
+    ) || null;
+  }, [user]);
 
   return {
     wallet,
+    client,
     isSmartWallet: true, // Always true since we only use smart wallets
     canUseGasSponsorship: true, // Always true for smart wallets
-    allWallets: wallets,
+    address: wallet?.address,
   };
 }
