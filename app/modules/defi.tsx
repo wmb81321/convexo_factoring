@@ -23,6 +23,7 @@ import {
 import { fetchAllChainsBalances, getAggregatedBalanceSummary } from "@/lib/blockchain";
 import { getPoolAnalytics, getUserDeFiPortfolio } from "@/lib/uniswap-subgraph";
 import { fetchMarketData } from "@/lib/pool-data";
+import { fetchTokenPrice } from "@/lib/price-feeds";
 import SimpleSwap from "@/app/components/simple-swap";
 
 interface TokenBalance {
@@ -70,6 +71,7 @@ export default function DeFi() {
   const [poolAnalytics, setPoolAnalytics] = useState<PoolAnalytics | null>(null);
   const [userPortfolio, setUserPortfolio] = useState<UserPortfolio | null>(null);
   const [marketData, setMarketData] = useState<any>(null);
+  const [ethPrice, setEthPrice] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -101,6 +103,15 @@ export default function DeFi() {
       // Fetch market data for price feeds
       const market = await fetchMarketData();
       setMarketData(market);
+      
+      // Fetch ETH price from CoinGecko
+      try {
+        const ethPriceData = await fetchTokenPrice('ethereum');
+        setEthPrice(ethPriceData.price);
+      } catch (error) {
+        console.error('Failed to fetch ETH price:', error);
+        setEthPrice(null);
+      }
       
       setLastUpdated(new Date());
       console.log('✅ DeFi: All data fetched successfully');
@@ -198,7 +209,7 @@ export default function DeFi() {
                 <div>
                   <div className="font-semibold">{formatNumber(aggregatedSummary.totalEth, 6)} ETH</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {marketData?.ethPrice ? formatCurrency(aggregatedSummary.totalEth * marketData.ethPrice) : 'Loading...'}
+                    {ethPrice ? formatCurrency(aggregatedSummary.totalEth * ethPrice) : 'Loading...'}
                   </div>
                 </div>
               </div>
@@ -242,7 +253,7 @@ export default function DeFi() {
               <div className="text-right">
                                  <div className="text-xl font-bold">
                    {(() => {
-                     const ethValue = marketData?.ethPrice ? aggregatedSummary.totalEth * marketData.ethPrice : 0;
+                     const ethValue = ethPrice ? aggregatedSummary.totalEth * ethPrice : 0;
                      const usdcValue = aggregatedSummary.totalUsdc;
                      const copeValue = poolAnalytics?.token1Price ? aggregatedSummary.totalCope * poolAnalytics.token1Price : 0;
                      return formatCurrency(ethValue + usdcValue + copeValue);
@@ -305,9 +316,9 @@ export default function DeFi() {
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-orange-600">
-                      {formatNumber(poolAnalytics.price, 6)}
+                      {formatNumber(1 / poolAnalytics.token1Price, 6)}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">Price</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">COPE/USDC</div>
                   </div>
                 </div>
               </div>
@@ -321,10 +332,7 @@ export default function DeFi() {
                       <span className="text-sm">Total Fees (24h)</span>
                       <span className="font-medium">{formatCurrency(poolAnalytics.feesUSD)}</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <span className="text-sm">Liquidity</span>
-                      <span className="font-medium">{formatNumber(parseFloat(poolAnalytics.liquidity), 0)}</span>
-                    </div>
+
                     <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <span className="text-sm">{poolAnalytics.token0.symbol} Locked</span>
                       <span className="font-medium">{formatNumber(poolAnalytics.totalValueLockedToken0, 2)}</span>
