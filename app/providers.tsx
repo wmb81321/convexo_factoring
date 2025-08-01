@@ -49,7 +49,7 @@ export const Providers = (props: PropsWithChildren) => {
             name: 'Ethereum Sepolia',
             network: 'sepolia',
             nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-            rpcUrls: { default: { http: ['https://rpc.sepolia.org'] } },
+            rpcUrls: { default: { http: ['https://ethereum-sepolia-rpc.publicnode.com'] } },
             blockExplorers: { default: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' } },
           },
           {
@@ -84,7 +84,7 @@ export const Providers = (props: PropsWithChildren) => {
           name: 'Ethereum Sepolia',
           network: 'sepolia',
           nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-          rpcUrls: { default: { http: ['https://rpc.sepolia.org'] } },
+          rpcUrls: { default: { http: ['https://ethereum-sepolia-rpc.publicnode.com'] } },
           blockExplorers: { default: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' } },
         },
         
@@ -95,7 +95,8 @@ export const Providers = (props: PropsWithChildren) => {
         config={{
                   // Alchemy Gas Manager configuration for proper sponsorship
         paymasterContext: {
-          policyId: process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID || '5c1f3503-0f13-4109-8559-e04e27f55239',
+          policyId: process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID,
+          rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
         },
         }}
       >

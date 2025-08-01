@@ -89,12 +89,17 @@ export default function SendModal({
         chain: chainId,
       });
 
+      // Determine decimals for the token
+      let decimals = 18; // Default for ETH
+      if (selectedToken.symbol === 'USDC') decimals = 6;
+      if (selectedToken.symbol === 'COPE') decimals = 6;
+
       // Use the new sponsored transaction flow
       await sendSponsoredTransaction({
         recipient: recipientAddress,
         amount: amount,
         tokenAddress: selectedToken.symbol === 'ETH' ? undefined : selectedToken.contract,
-        decimals: selectedToken.symbol === 'USDC' ? 6 : 18,
+        decimals: decimals,
         chainId: chainId,
       });
 
@@ -123,7 +128,18 @@ export default function SendModal({
     } catch (error) {
       console.error('❌ Transaction failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`❌ Transaction failed:\n\n${errorMessage}\n\nPlease check your balance and try again.`);
+      
+      // More specific error handling
+      let userMessage = 'Transaction failed. Please try again.';
+      if (errorMessage.includes('insufficient funds')) {
+        userMessage = 'Insufficient balance to complete this transaction.';
+      } else if (errorMessage.includes('gas')) {
+        userMessage = 'Gas estimation failed. The network may be congested.';
+      } else if (errorMessage.includes('rejected')) {
+        userMessage = 'Transaction was rejected.';
+      }
+      
+      alert(`❌ ${userMessage}\n\nError details: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }

@@ -73,77 +73,96 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
     setStatus(prev => ({ ...prev, isLoading: true, error: undefined }));
 
     try {
-      // Check if transaction is eligible for sponsorship
-      const isEligible = await checkSponsorship(params);
+      console.log('🚀 Attempting sponsored transaction:', params);
       
-      if (isEligible) {
-        // Use the new Alchemy gas sponsorship flow
-        console.log('🎉 Transaction eligible for gas sponsorship!');
-        
-        setStatus(prev => ({ ...prev, isSponsored: true }));
+      // Always try sponsorship first, but with better error handling
+      setStatus(prev => ({ ...prev, isSponsored: true }));
 
-        // For now, use Privy's existing sendTransaction with the smart wallet
-        // The SmartWalletsProvider with paymasterContext should handle sponsorship
-        const txParams = params.tokenAddress 
-          ? {
-              // ERC-20 token transfer
-              to: params.tokenAddress as `0x${string}`,
-              data: buildTransferCallData(params.recipient, params.amount, params.decimals || 18),
-            }
-          : {
-              // Native ETH transfer  
-              to: params.recipient as `0x${string}`,
-              value: BigInt(parseFloat(params.amount) * 1e18),
-            };
+      // Build transaction parameters with proper decimals
+      const decimals = params.decimals || 18;
+      const txParams = params.tokenAddress 
+        ? {
+            // ERC-20 token transfer
+            to: params.tokenAddress as `0x${string}`,
+            data: buildTransferCallData(params.recipient, params.amount, decimals),
+          }
+        : {
+            // Native ETH transfer  
+            to: params.recipient as `0x${string}`,
+            value: BigInt(parseFloat(params.amount) * Math.pow(10, 18)),
+          };
 
-        const result = await sendTransaction(txParams);
-        
-        setStatus(prev => ({ 
-          ...prev, 
-          isLoading: false, 
-          transactionHash: result.hash 
-        }));
+      console.log('📝 Transaction parameters:', txParams);
 
-        console.log('✅ Sponsored transaction sent:', result.hash);
-        
-      } else {
-        // Fallback to regular transaction (user pays gas)
-        console.log('⚠️ Transaction not eligible for sponsorship, user will pay gas');
-        
-        setStatus(prev => ({ ...prev, isSponsored: false }));
-
-        const txParams = params.tokenAddress 
-          ? {
-              to: params.tokenAddress as `0x${string}`,
-              data: buildTransferCallData(params.recipient, params.amount, params.decimals || 18),
-            }
-          : {
-              to: params.recipient as `0x${string}`,
-              value: BigInt(parseFloat(params.amount) * 1e18),
-            };
-
-        const result = await sendTransaction(txParams);
-        
-        setStatus(prev => ({ 
-          ...prev, 
-          isLoading: false, 
-          transactionHash: result.hash 
-        }));
-      }
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      // Try to send the transaction
+      const result = await sendTransaction(txParams);
       
       setStatus(prev => ({ 
         ...prev, 
         isLoading: false, 
-        error: errorMessage 
+        transactionHash: result.hash 
       }));
 
+      console.log('✅ Transaction sent successfully:', result.hash);
+      
+    } catch (error) {
       console.error('❌ Transaction failed:', error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // If it's a sponsorship-related error, try fallback
+      if (errorMessage.includes('sponsorship') || errorMessage.includes('paymaster') || errorMessage.includes('gas too low')) {
+        console.log('⚠️ Sponsorship failed, falling back to user-paid transaction');
+        
+        try {
+          setStatus(prev => ({ ...prev, isSponsored: false }));
+          
+          // Build transaction parameters again
+          const decimals = params.decimals || 18;
+          const txParams = params.tokenAddress 
+            ? {
+                to: params.tokenAddress as `0x${string}`,
+                data: buildTransferCallData(params.recipient, params.amount, decimals),
+                gasLimit: BigInt(100000), // Explicit gas limit for token transfers
+              }
+            : {
+                to: params.recipient as `0x${string}`,
+                value: BigInt(parseFloat(params.amount) * Math.pow(10, 18)),
+                gasLimit: BigInt(21000), // Standard ETH transfer gas
+              };
+
+          const fallbackResult = await sendTransaction(txParams);
+          
+          setStatus(prev => ({ 
+            ...prev, 
+            isLoading: false, 
+            transactionHash: fallbackResult.hash 
+          }));
+
+          console.log('✅ Fallback transaction sent:', fallbackResult.hash);
+          
+        } catch (fallbackError) {
+          console.error('❌ Fallback transaction also failed:', fallbackError);
+          const fallbackErrorMessage = fallbackError instanceof Error ? fallbackError.message : 'Fallback transaction failed';
+          
+          setStatus(prev => ({ 
+            ...prev, 
+            isLoading: false, 
+            error: fallbackErrorMessage 
+          }));
+
+          throw new Error(`Transaction failed: ${fallbackErrorMessage}`);
+        }
+      } else {
+        setStatus(prev => ({ 
+          ...prev, 
+          isLoading: false, 
+          error: errorMessage 
+        }));
+
+        throw error;
+      }
     }
-  }, [smartWallet, sendTransaction, checkSponsorship]);
+  }, [smartWallet, sendTransaction]);
 
   return {
     sendSponsoredTransaction,
