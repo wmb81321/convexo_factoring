@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useWallets } from "@privy-io/react-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +23,7 @@ import { fetchAllChainsBalances, getAggregatedBalanceSummary } from "@/lib/block
 import { getPoolAnalytics, getUserDeFiPortfolio } from "@/lib/uniswap-subgraph";
 import { fetchMarketData } from "@/lib/pool-data";
 import SimpleSwap from "@/app/components/simple-swap";
+import { useSmartWallet } from "@/app/hooks/useSmartWallet";
 
 interface TokenBalance {
   symbol: string;
@@ -63,8 +63,7 @@ interface UserPortfolio {
 }
 
 export default function DeFi() {
-  const { wallets } = useWallets();
-  const wallet = wallets?.[0];
+  const { wallet, isSmartWallet, canUseGasSponsorship } = useSmartWallet();
   
   const [allChainsBalances, setAllChainsBalances] = useState<{ [chainId: number]: TokenBalance[] }>({});
   const [poolAnalytics, setPoolAnalytics] = useState<PoolAnalytics | null>(null);
@@ -99,7 +98,7 @@ export default function DeFi() {
 
     setIsLoading(true);
     try {
-      console.log(`🔍 DeFi: Fetching data for ${wallet.address}`);
+      console.log(`🔍 DeFi: Fetching data for ${wallet.address} (${isSmartWallet ? 'Smart Wallet' : 'External Wallet'})`);
       
       // Fetch multi-chain balances
       const balances = await fetchAllChainsBalances(wallet.address);
@@ -127,7 +126,7 @@ export default function DeFi() {
     } finally {
       setIsLoading(false);
     }
-  }, [wallet?.address]);
+  }, [wallet?.address, isSmartWallet]);
 
   useEffect(() => {
     fetchData();
@@ -180,6 +179,15 @@ export default function DeFi() {
           <p className="text-gray-600 dark:text-gray-300">
             Manage your DeFi positions and track pool analytics
           </p>
+          
+          {/* Wallet Status */}
+          <div className="mt-2">
+            <Badge variant={isSmartWallet ? "default" : "secondary"} className="gap-2">
+              {isSmartWallet && "🚀 Smart Wallet"}
+              {!isSmartWallet && "🦊 External Wallet"}
+              {canUseGasSponsorship && " • Gas Sponsored"}
+            </Badge>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {lastUpdated && (
@@ -209,7 +217,7 @@ export default function DeFi() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
               <div className="flex items-center gap-3">
                 <div className="text-2xl">💎</div>
@@ -234,7 +242,7 @@ export default function DeFi() {
               </div>
             </div>
             
-                         <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
                <div className="flex items-center gap-3">
                  <div className="text-2xl">🚀</div>
                  <div>
@@ -245,8 +253,6 @@ export default function DeFi() {
                  </div>
                </div>
              </div>
-             
-
           </div>
 
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
@@ -258,7 +264,7 @@ export default function DeFi() {
                 </p>
               </div>
               <div className="text-right">
-                                 <div className="text-xl font-bold">
+                <div className="text-xl font-bold">
                    {(() => {
                      const ethValue = ethPrice ? aggregatedSummary.totalEth * ethPrice : 0;
                      const usdcValue = aggregatedSummary.totalUsdc;
@@ -290,7 +296,7 @@ export default function DeFi() {
                     <h3 className="text-lg font-semibold">
                       {poolAnalytics.token0.symbol}-{poolAnalytics.token1.symbol} Pool
                     </h3>
-                                         <p className="text-sm text-gray-600 dark:text-gray-300">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                        Fee Tier: {poolAnalytics.feeTier / 1000000}%
                      </p>
                   </div>
@@ -339,7 +345,6 @@ export default function DeFi() {
                       <span className="text-sm">Total Fees (24h)</span>
                       <span className="font-medium">{formatCurrency(poolAnalytics.feesUSD)}</span>
                     </div>
-
                     <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <span className="text-sm">{poolAnalytics.token0.symbol} Locked</span>
                       <span className="font-medium">{formatNumber(poolAnalytics.totalValueLockedToken0, 2)}</span>
@@ -421,7 +426,7 @@ export default function DeFi() {
                           <h4 className="font-semibold">
                             {position.pool.token0.symbol}-{position.pool.token1.symbol}
                           </h4>
-                                                     <p className="text-sm text-gray-600 dark:text-gray-300">
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
                              Fee Tier: {position.pool.feeTier / 1000000}%
                            </p>
                         </div>
@@ -456,7 +461,7 @@ export default function DeFi() {
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Active Positions</h3>
-                                 <p className="text-gray-600 dark:text-gray-300 mb-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                    You don&apos;t have any active liquidity positions yet
                  </p>
                 <Button className="gap-2">

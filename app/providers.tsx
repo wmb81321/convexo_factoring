@@ -25,7 +25,7 @@ export const Providers = (props: PropsWithChildren) => {
       appId={privyAppId}
       config={{
         // Login methods - supporting multiple authentication options
-        loginMethods: ['email', 'sms', 'google', 'apple'],
+        loginMethods: ['wallet', 'google', 'apple', 'telegram'],
         
         // Appearance customization
         appearance: {
@@ -37,10 +37,27 @@ export const Providers = (props: PropsWithChildren) => {
         
         // Embedded wallet configuration for smart wallets
         embeddedWallets: {
-          createOnLogin: 'all-users', // Create smart wallets for all users
+          createOnLogin: 'users-without-wallets', // Create smart wallets for users without external wallets
           requireUserPasswordOnCreate: false,
           showWalletUIs: true,
         },
+
+
+        walletChainType: "ethereum-and-solana",
+
+        // Wallet list for the embedded wallet
+        walletList: [
+          "detected_wallets",
+          "metamask",
+          "phantom",
+          "coinbase_wallet",
+          "base_account",
+          "rainbow",
+          "solflare",
+          "backpack",
+          "okx_wallet",
+          "wallet_connect"
+        ],
 
         // Supported chains configuration (must match dashboard setup)
         supportedChains: [

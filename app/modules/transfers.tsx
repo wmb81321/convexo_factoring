@@ -1,12 +1,12 @@
 "use client";
 
-import { useWallets } from "@privy-io/react-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import TokenBalances from "@/app/components/token-balances";
+import { useSmartWallet } from "@/app/hooks/useSmartWallet";
 
 export default function Transfers() {
-  const { wallets } = useWallets();
-  const wallet = wallets?.[0];
+  const { wallet, isSmartWallet, isExternalWallet, canUseGasSponsorship } = useSmartWallet();
 
   return (
     <div className="space-y-6">
@@ -15,6 +15,17 @@ export default function Transfers() {
         <p className="text-lg text-gray-600 dark:text-gray-300">
           View your token holdings across all supported chains
         </p>
+        
+        {/* Wallet Type Indicator */}
+        {wallet && (
+          <div className="flex justify-center">
+            <Badge variant={isSmartWallet ? "default" : "secondary"} className="gap-2">
+              {isSmartWallet && "🚀 Smart Wallet"}
+              {isExternalWallet && "🦊 External Wallet"}
+              {canUseGasSponsorship && " • Gas Sponsored"}
+            </Badge>
+          </div>
+        )}
       </div>
 
       <Card>
@@ -30,4 +41,4 @@ export default function Transfers() {
       </Card>
     </div>
   );
-} 
+}
