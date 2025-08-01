@@ -15,22 +15,21 @@ export default function PrivySmartWallet() {
   const [selectedChainId, setSelectedChainId] = useState(DEFAULT_CHAIN.chainId);
   const [isExporting, setIsExporting] = useState(false);
 
-  // Get smart wallet from user's linked accounts (NOT from wallets)
-  const smartWallet = user?.linkedAccounts?.find(
-    (account) => account.type === 'smart_wallet'
+  // Get embedded wallet (foundation for smart wallet functionality)
+  const embeddedWallet = user?.linkedAccounts?.find(
+    (account) => account.type === 'wallet'
   );
   const selectedChain = getChainById(selectedChainId);
 
   const handleExportWallet = async () => {
-    if (!smartWallet) return;
+    if (!embeddedWallet) return;
     
     setIsExporting(true);
     try {
-      // Smart wallets don't need export in the same way
-      console.log('Smart wallet address:', smartWallet.address);
-      alert(`Smart wallet address: ${smartWallet.address}`);
+      console.log('Wallet address:', embeddedWallet.address);
+      alert(`Wallet address: ${embeddedWallet.address}`);
     } catch (error) {
-      console.error("Error with smart wallet:", error);
+      console.error("Error with wallet:", error);
     } finally {
       setIsExporting(false);
     }
@@ -61,7 +60,7 @@ export default function PrivySmartWallet() {
               🎉 Welcome to the Future of Web3!
             </h3>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Your smart wallet is active with gasless transactions powered by Alchemy across multiple testnets. No embedded wallets needed!
+              Your smart wallet is active with gasless transactions powered by Alchemy across multiple testnets. Account abstraction enabled!
             </p>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
@@ -153,16 +152,16 @@ export default function PrivySmartWallet() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Smart Wallet:</span>
-                  <span className="font-medium">{smartWallet ? '✅ Active' : '❌ Not Found'}</span>
+                  <span className="font-medium">{embeddedWallet ? '✅ Active' : '❌ Not Found'}</span>
                 </div>
               </div>
             </div>
 
-            {/* Smart Wallet Details - ONLY WALLET TYPE */}
-            {smartWallet ? (
+            {/* Smart Wallet Details - EMBEDDED WALLET WITH SMART FEATURES */}
+            {embeddedWallet ? (
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                 <h4 className="font-semibold mb-2 text-blue-800 dark:text-blue-400">
-                  🚀 Smart Wallet
+                  🚀 Smart Wallet (Account Abstraction)
                 </h4>
                 <div className="space-y-3">
                   <div>
@@ -171,12 +170,12 @@ export default function PrivySmartWallet() {
                     </label>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 p-2 bg-white dark:bg-gray-700 rounded border text-sm font-mono">
-                        {smartWallet.address}
+                        {embeddedWallet.address}
                       </code>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => navigator.clipboard.writeText(smartWallet.address)}
+                        onClick={() => navigator.clipboard.writeText(embeddedWallet.address)}
                       >
                         Copy
                       </Button>
@@ -195,7 +194,7 @@ export default function PrivySmartWallet() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(`${selectedChain?.blockExplorer}/address/${smartWallet.address}`, '_blank')}
+                      onClick={() => window.open(`${selectedChain?.blockExplorer}/address/${embeddedWallet.address}`, '_blank')}
                     >
                       View on Explorer
                     </Button>
@@ -205,10 +204,10 @@ export default function PrivySmartWallet() {
             ) : (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
                 <h4 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
-                  ⚠️ Smart Wallet Not Found
+                  ⚠️ Wallet Not Found
                 </h4>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  Smart wallet is being created. Please refresh if this persists.
+                  Wallet is being created. Please refresh if this persists.
                 </p>
               </div>
             )}
@@ -216,10 +215,10 @@ export default function PrivySmartWallet() {
         </Card>
       </div>
 
-      {/* Token Balances - FROM SMART WALLET ONLY */}
-      {smartWallet && (
+      {/* Token Balances - FROM WALLET WITH SMART FEATURES */}
+      {embeddedWallet && (
         <TokenBalances
-          walletAddress={smartWallet.address}
+          walletAddress={embeddedWallet.address}
         />
       )}
 

@@ -12,9 +12,9 @@ export function useSmartWallet() {
   const { client } = useSmartWallets();
 
   const wallet = useMemo(() => {
-    // Get smart wallet from user's linked accounts (proper way)
+    // Get embedded wallet (foundation for smart wallet functionality)
     return user?.linkedAccounts?.find(
-      (account) => account.type === 'smart_wallet'
+      (account) => account.type === 'wallet'
     ) || null;
   }, [user]);
 

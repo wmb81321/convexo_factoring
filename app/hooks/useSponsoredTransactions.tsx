@@ -37,7 +37,7 @@ export function useSponsoredTransactions(): UseSponsoredTransactionsReturn {
   });
 
   const smartWallet = user?.linkedAccounts?.find(
-    (account) => account.type === 'smart_wallet'
+    (account) => account.type === 'wallet'
   );
 
   const reset = useCallback(() => {

@@ -24,7 +24,7 @@ export const Providers = (props: PropsWithChildren) => {
     <PrivyProvider
       appId={privyAppId}
       config={{
-        // Login methods - social logins for smart wallets ONLY
+        // Login methods - social logins create embedded wallets automatically
         loginMethods: ['google', 'apple', 'telegram'],
         
         // Appearance customization
@@ -35,11 +35,11 @@ export const Providers = (props: PropsWithChildren) => {
           showWalletLoginFirst: false,
         },
         
-        // DISABLE embedded wallets - we only want smart wallets
+        // CREATE embedded wallets (needed for smart wallets)
         embeddedWallets: {
-          createOnLogin: 'off', // No embedded wallets
+          createOnLogin: 'all-users', // Create for all users
           requireUserPasswordOnCreate: false,
-          showWalletUIs: false,
+          showWalletUIs: false, // Hide UI since we use smart wallet interface
         },  
 
 
