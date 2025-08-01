@@ -236,16 +236,11 @@ export async function fetchAllBalances(
   return balances;
 }
 
-// Get USD price for tokens (mock implementation - replace with real price API)
+// Get USD price for tokens - REMOVED MOCK PRICES
+// Use real price APIs only
 export async function getTokenPrice(symbol: string): Promise<number> {
-  // Mock prices - integrate with CoinGecko, CoinMarketCap, or other price APIs
-  const mockPrices: Record<string, number> = {
-    'ETH': 2000,
-    'USDC': 1,
-    'COPE': 0.25,
-  };
-
-  return mockPrices[symbol] || 0;
+  console.warn(`getTokenPrice(${symbol}) called - use real price APIs instead`);
+  return 0; // No mock data
 }
 
 // Format large numbers with proper suffixes

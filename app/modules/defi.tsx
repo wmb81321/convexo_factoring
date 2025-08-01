@@ -23,7 +23,6 @@ import {
 import { fetchAllChainsBalances, getAggregatedBalanceSummary } from "@/lib/blockchain";
 import { getPoolAnalytics, getUserDeFiPortfolio } from "@/lib/uniswap-subgraph";
 import { fetchMarketData } from "@/lib/pool-data";
-import { fetchTokenPrice } from "@/lib/price-feeds";
 import SimpleSwap from "@/app/components/simple-swap";
 
 interface TokenBalance {
@@ -77,6 +76,20 @@ export default function DeFi() {
 
   const aggregatedSummary = getAggregatedBalanceSummary(allChainsBalances);
 
+  // Real ETH price fetcher - no fallbacks
+  const fetchEthPrice = async () => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+      const data = await response.json();
+      const price = data.ethereum.usd;
+      console.log('Real ETH Price:', price);
+      setEthPrice(price);
+    } catch (error) {
+      console.error('ETH price fetch failed:', error);
+      setEthPrice(null); // No fake data
+    }
+  };
+
   // Fetch all data
   const fetchData = useCallback(async () => {
     if (!wallet?.address) {
@@ -104,18 +117,8 @@ export default function DeFi() {
       const market = await fetchMarketData();
       setMarketData(market);
       
-      // Fetch ETH price from CoinGecko
-      try {
-        console.log('🔍 Fetching ETH price from CoinGecko...');
-        const ethPriceData = await fetchTokenPrice('ethereum');
-        console.log('✅ ETH price fetched:', ethPriceData.price);
-        setEthPrice(ethPriceData.price);
-      } catch (error) {
-        console.error('❌ Failed to fetch ETH price:', error);
-        // Fallback to a reasonable ETH price if API fails
-        console.log('🔄 Using fallback ETH price: $2000');
-        setEthPrice(2000);
-      }
+      // Simple ETH price fetch
+      fetchEthPrice();
       
       setLastUpdated(new Date());
       console.log('✅ DeFi: All data fetched successfully');
@@ -260,7 +263,7 @@ export default function DeFi() {
                      const ethValue = ethPrice ? aggregatedSummary.totalEth * ethPrice : 0;
                      const usdcValue = aggregatedSummary.totalUsdc;
                      const copeValue = poolAnalytics?.token1Price ? aggregatedSummary.totalCope * poolAnalytics.token1Price : 0;
-                     return formatCurrency(ethValue + usdcValue + copeValue);
+                     return ethPrice ? formatCurrency(ethValue + usdcValue + copeValue) : 'Loading...';
                    })()}
                  </div>
               </div>
