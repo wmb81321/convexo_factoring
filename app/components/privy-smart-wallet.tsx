@@ -9,24 +9,39 @@ import TokenBalances from "./token-balances";
 import { getChainById, DEFAULT_CHAIN } from "@/lib/chains";
 
 export default function PrivySmartWallet() {
-  const { user, logout, exportWallet } = usePrivy();
+  const { user, logout, exportWallet, connectWallet } = usePrivy();
   const { wallets } = useWallets();
   const [selectedChainId, setSelectedChainId] = useState(DEFAULT_CHAIN.chainId);
   const [isExporting, setIsExporting] = useState(false);
+  const [isConnectingExternal, setIsConnectingExternal] = useState(false);
 
-  const embeddedWallet = wallets?.find(wallet => wallet.address);
+  // Smart wallet is the primary wallet (embedded)
+  const smartWallet = wallets?.find(wallet => wallet.walletClientType === 'privy');
+  // External wallets (MetaMask, WalletConnect, etc.)
+  const externalWallets = wallets?.filter(wallet => wallet.walletClientType !== 'privy');
   const selectedChain = getChainById(selectedChainId);
 
   const handleExportWallet = async () => {
-    if (!embeddedWallet) return;
+    if (!smartWallet) return;
     
     setIsExporting(true);
     try {
-      await exportWallet({ address: embeddedWallet.address });
+      await exportWallet({ address: smartWallet.address });
     } catch (error) {
       console.error("Error exporting wallet:", error);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleConnectExternalWallet = async () => {
+    setIsConnectingExternal(true);
+    try {
+      await connectWallet();
+    } catch (error) {
+      console.error("Error connecting external wallet:", error);
+    } finally {
+      setIsConnectingExternal(false);
     }
   };
 
@@ -152,11 +167,11 @@ export default function PrivySmartWallet() {
               </div>
             </div>
 
-            {/* Smart Wallet Details */}
-            {embeddedWallet && (
+            {/* Smart Wallet Details - PRIMARY WALLET */}
+            {smartWallet && (
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                 <h4 className="font-semibold mb-2 text-blue-800 dark:text-blue-400">
-                  Smart Wallet
+                  🚀 Smart Wallet (Primary)
                 </h4>
                 <div className="space-y-3">
                   <div>
@@ -165,12 +180,12 @@ export default function PrivySmartWallet() {
                     </label>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 p-2 bg-white dark:bg-gray-700 rounded border text-sm font-mono">
-                        {embeddedWallet.address}
+                        {smartWallet.address}
                       </code>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => navigator.clipboard.writeText(embeddedWallet.address)}
+                        onClick={() => navigator.clipboard.writeText(smartWallet.address)}
                       >
                         Copy
                       </Button>
@@ -189,7 +204,7 @@ export default function PrivySmartWallet() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(`${selectedChain?.blockExplorer}/address/${embeddedWallet.address}`, '_blank')}
+                      onClick={() => window.open(`${selectedChain?.blockExplorer}/address/${smartWallet.address}`, '_blank')}
                     >
                       View on Explorer
                     </Button>
@@ -197,14 +212,49 @@ export default function PrivySmartWallet() {
                 </div>
               </div>
             )}
+
+            {/* External Wallet Connection Option */}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <h4 className="font-semibold mb-2">External Wallet (Optional)</h4>
+              {externalWallets && externalWallets.length > 0 ? (
+                <div className="space-y-2">
+                  {externalWallets.map((wallet, index) => (
+                    <div key={index} className="bg-white dark:bg-gray-700 rounded p-2 border">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-mono">{formatAddress(wallet.address)}</span>
+                        <span className="text-green-600">✅ Connected</span>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    External wallets can be used for direct dApp interaction
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleConnectExternalWallet}
+                    disabled={isConnectingExternal}
+                    className="w-full"
+                  >
+                    {isConnectingExternal ? "Connecting..." : "Connect External Wallet"}
+                  </Button>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Optional: Connect MetaMask or other wallets for direct dApp interaction
+                  </p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Token Balances */}
-      {embeddedWallet && (
+      {/* Token Balances - FROM SMART WALLET ONLY */}
+      {smartWallet && (
         <TokenBalances
-          walletAddress={embeddedWallet.address}
+          walletAddress={smartWallet.address}
         />
       )}
 

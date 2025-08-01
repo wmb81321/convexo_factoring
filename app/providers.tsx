@@ -24,22 +24,22 @@ export const Providers = (props: PropsWithChildren) => {
     <PrivyProvider
       appId={privyAppId}
       config={{
-        // Login methods - supporting multiple authentication options
-        loginMethods: ['wallet', 'google', 'apple', 'telegram'],
+        // Login methods - prioritize social logins for smart wallets
+        loginMethods: ['google', 'apple', 'telegram', 'wallet'],
         
         // Appearance customization
         appearance: {
           theme: 'light',
           accentColor: '#4B66F3',
           logo: '/convexo-logo.png',
-          showWalletLoginFirst: false,
+          showWalletLoginFirst: false, // Social login first, smart wallets by default
         },
         
-        // Embedded wallet configuration for smart wallets
+        // Smart wallet configuration - DEFAULT for all users
         embeddedWallets: {
-          createOnLogin: 'users-without-wallets', // Create smart wallets for users without external wallets
+          createOnLogin: 'all-users', // ALL users get smart wallets automatically
           requireUserPasswordOnCreate: false,
-          showWalletUIs: true,
+          showWalletUIs: false, // No embedded wallet UI - smart wallets only
         },
 
 

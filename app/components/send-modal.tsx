@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getChainById } from "@/lib/chains";
 import { TokenBalance } from "@/lib/blockchain";
-import { useWallets, useSendTransaction } from "@privy-io/react-auth";
+import { useSendTransaction } from "@privy-io/react-auth";
 import { parseEther, parseUnits } from "viem";
 import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
 
@@ -35,7 +35,6 @@ export default function SendModal({
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const chain = getChainById(chainId);
-  const { wallets } = useWallets();
   const { sendTransaction } = useSendTransaction();
   const { sendSponsoredTransaction, status: sponsorshipStatus, reset: resetSponsorship } = useSponsoredTransactions();
 

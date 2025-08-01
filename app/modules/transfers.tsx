@@ -6,7 +6,7 @@ import TokenBalances from "@/app/components/token-balances";
 import { useSmartWallet } from "@/app/hooks/useSmartWallet";
 
 export default function Transfers() {
-  const { wallet, isSmartWallet, isExternalWallet, canUseGasSponsorship } = useSmartWallet();
+  const { wallet, isSmartWallet, canUseGasSponsorship } = useSmartWallet();
 
   return (
     <div className="space-y-6">
@@ -16,13 +16,11 @@ export default function Transfers() {
           View your token holdings across all supported chains
         </p>
         
-        {/* Wallet Type Indicator */}
+        {/* Smart Wallet Indicator */}
         {wallet && (
           <div className="flex justify-center">
-            <Badge variant={isSmartWallet ? "default" : "secondary"} className="gap-2">
-              {isSmartWallet && "🚀 Smart Wallet"}
-              {isExternalWallet && "🦊 External Wallet"}
-              {canUseGasSponsorship && " • Gas Sponsored"}
+            <Badge variant="default" className="gap-2">
+              🚀 Smart Wallet • Gas Sponsored
             </Badge>
           </div>
         )}
