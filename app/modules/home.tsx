@@ -24,44 +24,8 @@ export default function Home() {
   if (authenticated && user) {
     return (
       <div className="space-y-6">
-        {/* Smart Wallet Dashboard - Primary Interface */}
+        {/* Smart Wallet Dashboard - Clean Interface */}
         <PrivySmartWallet />
-        
-        {/* Quick Actions Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="">
-                <div className="flex items-center gap-3">
-                  <Wallet className="w-8 h-8 text-blue-600" />
-                  <div>
-                    <h3 className="font-semibold">Transfers</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Send and receive tokens via smart wallet
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="">
-                <div className="flex items-center gap-3">
-                  <Zap className="w-8 h-8 text-green-600" />
-                  <div>
-                    <h3 className="font-semibold">DeFi</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Swap tokens and manage liquidity
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }

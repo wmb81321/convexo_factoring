@@ -257,34 +257,7 @@ export default function PrivySmartWallet() {
         </Card>
       </div>
 
-      {/* Token Balances - FROM SMART WALLET ONLY */}
-      {smartWalletAddress && (
-        <TokenBalances
-          walletAddress={smartWalletAddress}
-        />
-      )}
 
-      {/* Actions */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              onClick={() => window.location.reload()}
-              className="flex-1"
-            >
-              Refresh Wallet
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={logout}
-              className="flex-1"
-            >
-              Disconnect Wallet
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Integration Status */}
       <Card>

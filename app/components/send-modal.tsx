@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, QrCode, Send, AlertCircle, ArrowRight } from "lucide-react";
+import { X, QrCode, Send, AlertCircle, ArrowRight, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getChainById } from "@/lib/chains";
+import { Badge } from "@/components/ui/badge";
+import { getChainById, SUPPORTED_CHAINS } from "@/lib/chains";
 import { TokenBalance } from "@/lib/blockchain";
 import { useSendTransaction } from "@privy-io/react-auth";
 import { parseEther, parseUnits } from "viem";
 import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
+import ChainSelector from "./chain-selector";
 
 interface SendModalProps {
   isOpen: boolean;
@@ -16,6 +18,8 @@ interface SendModalProps {
   walletAddress: string;
   chainId: number;
   balances: TokenBalance[];
+  walletType?: 'smart' | 'embedded';
+  isSmartWallet?: boolean;
 }
 
 export default function SendModal({
@@ -24,8 +28,11 @@ export default function SendModal({
   walletAddress,
   chainId,
   balances,
+  walletType = 'smart',
+  isSmartWallet = true,
 }: SendModalProps) {
-  const [step, setStep] = useState<'select' | 'details' | 'confirm'>('select');
+  const [step, setStep] = useState<'chain' | 'select' | 'details' | 'confirm'>('chain');
+  const [selectedChainId, setSelectedChainId] = useState(chainId);
   const [selectedToken, setSelectedToken] = useState<TokenBalance | null>(null);
   const [recipientAddress, setRecipientAddress] = useState("");
   const [amount, setAmount] = useState("");
@@ -34,7 +41,7 @@ export default function SendModal({
   const [isLoading, setIsLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  const chain = getChainById(chainId);
+  const selectedChain = getChainById(selectedChainId);
   const { sendTransaction } = useSendTransaction();
   const { sendSponsoredTransaction, status: sponsorshipStatus, reset: resetSponsorship } = useSponsoredTransactions();
 
@@ -45,11 +52,15 @@ export default function SendModal({
   }, [recipientAddress]);
 
   const resetModal = () => {
-    setStep('select');
+    setStep('chain');
+    setSelectedChainId(chainId);
     setSelectedToken(null);
     setRecipientAddress("");
     setAmount("");
     setShowQrScanner(false);
+    setIsValidAddress(false);
+    setIsLoading(false);
+    setTxHash(null);
   };
 
   const handleClose = () => {
@@ -199,7 +210,7 @@ export default function SendModal({
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Sending from
             </div>
-            <div className="font-semibold">{chain?.name}</div>
+            <div className="font-semibold">{selectedChain?.name}</div>
           </div>
 
           {/* Step 1: Select Token */}

@@ -12,6 +12,7 @@ interface ReceiveModalProps {
   onClose: () => void;
   walletAddress: string;
   chainId: number;
+  walletType?: 'smart' | 'embedded';
 }
 
 export default function ReceiveModal({
@@ -19,6 +20,7 @@ export default function ReceiveModal({
   onClose,
   walletAddress,
   chainId,
+  walletType = 'smart',
 }: ReceiveModalProps) {
   const [copied, setCopied] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
