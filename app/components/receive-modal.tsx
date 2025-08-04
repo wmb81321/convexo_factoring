@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { Copy, Check, X, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getChainById } from "@/lib/chains";
+import { getChainById, getAllChains } from "@/lib/chains";
+import ChainSelector from "./chain-selector";
+import ChainLogo from "./chain-logo";
 import Image from "next/image";
 
 interface ReceiveModalProps {
@@ -22,19 +24,20 @@ export default function ReceiveModal({
   chainId,
   walletType = 'smart',
 }: ReceiveModalProps) {
+  const [selectedChainId, setSelectedChainId] = useState(chainId);
   const [copied, setCopied] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 
-  const chain = getChainById(chainId);
+  const chain = getChainById(selectedChainId);
 
   useEffect(() => {
     if (isOpen && walletAddress) {
-      // Generate QR code using a simple data URL (you can replace with qrcode library)
+      // Generate QR code with chain-specific styling
       const qrText = walletAddress;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(qrText)}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(qrText)}&bgcolor=ffffff&color=000000`;
       setQrCodeUrl(qrUrl);
     }
-  }, [isOpen, walletAddress]);
+  }, [isOpen, walletAddress, selectedChainId]);
 
   const handleCopy = async () => {
     try {
@@ -60,6 +63,8 @@ export default function ReceiveModal({
     }
   };
 
+
+
   if (!isOpen) return null;
 
   return (
@@ -81,27 +86,49 @@ export default function ReceiveModal({
         </CardHeader>
         
         <CardContent className="space-y-6">
+          {/* Chain Selector */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Select Network
+            </label>
+            <ChainSelector
+              currentChainId={selectedChainId}
+              onChainChange={setSelectedChainId}
+            />
+          </div>
+
           {/* Chain Info */}
-          <div className="text-center">
+          <div className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
               Receiving on
             </div>
-            <div className="font-semibold text-lg">{chain?.name}</div>
-            <div className="text-xs text-gray-500">Chain ID: {chainId}</div>
+            <div className="font-semibold text-lg flex items-center justify-center gap-2">
+              <ChainLogo chainId={selectedChainId} size={24} />
+              {chain?.name}
+            </div>
+            <div className="text-xs text-gray-500">Chain ID: {selectedChainId}</div>
           </div>
 
           {/* QR Code */}
           <div className="flex justify-center">
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="bg-white p-4 rounded-lg shadow-sm border relative">
               {qrCodeUrl ? (
-                <Image
-                  src={qrCodeUrl}
-                  alt="Wallet QR Code"
-                  width={192}
-                  height={192}
-                  className="w-48 h-48"
-                  onError={() => setQrCodeUrl("")}
-                />
+                <div className="relative">
+                  <Image
+                    src={qrCodeUrl}
+                    alt="Wallet QR Code"
+                    width={192}
+                    height={192}
+                    className="w-48 h-48"
+                    onError={() => setQrCodeUrl("")}
+                  />
+                  {/* Chain logo overlay in center */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white rounded-full p-3 shadow-lg">
+                      <ChainLogo chainId={selectedChainId} size={32} />
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="w-48 h-48 bg-gray-100 flex items-center justify-center rounded">
                   <QrCode className="h-12 w-12 text-gray-400" />
@@ -116,17 +143,15 @@ export default function ReceiveModal({
               Your Wallet Address
             </label>
             <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={walletAddress}
-                readOnly
-                className="flex-1 p-3 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-600 text-sm font-mono"
-              />
+              <div className="flex-1 p-3 border border-gray-300 rounded-lg 
+                bg-gray-50 dark:bg-gray-800 dark:border-gray-600 text-sm font-mono break-all">
+                {walletAddress}
+              </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCopy}
-                className="px-3"
+                className="px-3 flex-shrink-0"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-green-500" />
@@ -162,7 +187,7 @@ export default function ReceiveModal({
               onClick={() => window.open(`${chain?.blockExplorer}/address/${walletAddress}`, '_blank')}
               className="flex-1"
             >
-              View on Explorer
+              View on {chain?.name.split(' ')[0]} Explorer
             </Button>
           </div>
         </CardContent>

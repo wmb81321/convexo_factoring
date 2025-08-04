@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllChains, getChainById, ChainConfig } from "@/lib/chains";
 import { fetchAllChainsBalances, getAggregatedBalanceSummary, TokenBalance } from "@/lib/blockchain";
+import ChainLogo from "./chain-logo";
 import SendModal from "./send-modal";
 import ReceiveModal from "./receive-modal";
 
@@ -20,7 +21,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
-  const [selectedChain, setSelectedChain] = useState<number | null>(null);
+  const [selectedChain, setSelectedChain] = useState<number>(11155111); // Default to Ethereum Sepolia
 
   const chains = getAllChains();
   const aggregatedSummary = getAggregatedBalanceSummary(allChainsBalances);
@@ -254,7 +255,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
         isOpen={showSendModal}
         onClose={() => setShowSendModal(false)}
         walletAddress={walletAddress}
-        chainId={selectedChain || 11155111} // Default to Ethereum Sepolia
+        chainId={selectedChain}
         balances={Object.values(allChainsBalances).flat()}
       />
 
@@ -263,7 +264,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
         isOpen={showReceiveModal}
         onClose={() => setShowReceiveModal(false)}
         walletAddress={walletAddress}
-        chainId={selectedChain || 11155111} // Default to Ethereum Sepolia
+        chainId={selectedChain}
       />
     </>
   );

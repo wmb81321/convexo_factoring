@@ -5,6 +5,7 @@ import { ChevronDown, Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // Using custom dropdown instead of shadcn dropdown-menu
 import { getAllChains, getChainById, ChainConfig } from "@/lib/chains";
+import ChainLogo from "./chain-logo";
 
 interface ChainSelectorProps {
   currentChainId: number;
@@ -26,15 +27,7 @@ export default function ChainSelector({
     setIsOpen(false);
   };
 
-  const getChainIcon = (chain: ChainConfig) => {
-    switch (chain.chainId) {
-      case 11155111: return "🔷"; // Ethereum
-      case 1301: return "🦄"; // Unichain
-      case 11155420: return "🔴"; // Optimism
-      case 84532: return "🔵"; // Base
-      default: return "⚡";
-    }
-  };
+
 
   const getChainColor = (chain: ChainConfig) => {
     switch (chain.chainId) {
@@ -63,7 +56,7 @@ export default function ChainSelector({
         className="flex items-center gap-2 min-w-[200px] justify-between bg-white hover:bg-gray-50"
       >
         <div className="flex items-center gap-2">
-          <span className="text-lg">{getChainIcon(currentChain)}</span>
+          <ChainLogo chainId={currentChain.chainId} size={20} />
           <div className="flex flex-col items-start">
             <span className="text-sm font-medium">{currentChain.shortName}</span>
             {currentChain.isDefault && (
@@ -86,7 +79,7 @@ export default function ChainSelector({
               onClick={() => handleChainSelect(chain.chainId)}
               className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-gray-50 rounded-sm"
             >
-              <span className="text-lg">{getChainIcon(chain)}</span>
+              <ChainLogo chainId={chain.chainId} size={24} />
               
               <div className="flex-1">
                 <div className="flex items-center gap-2">

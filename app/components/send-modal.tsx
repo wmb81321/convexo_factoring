@@ -11,6 +11,7 @@ import { useSendTransaction } from "@privy-io/react-auth";
 import { parseEther, parseUnits } from "viem";
 import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
 import ChainSelector from "./chain-selector";
+import ChainLogo from "./chain-logo";
 
 interface SendModalProps {
   isOpen: boolean;
@@ -110,7 +111,7 @@ export default function SendModal({
         amount: amount,
         tokenAddress: selectedToken.symbol === 'ETH' ? undefined : selectedToken.contract,
         decimals: decimals,
-        chainId: chainId,
+        chainId: selectedChainId,
       });
 
       // Get transaction hash from sponsorship status
@@ -173,6 +174,8 @@ export default function SendModal({
 
   const canProceed = () => {
     switch (step) {
+      case 'chain':
+        return selectedChain !== null;
       case 'select':
         return selectedToken !== null;
       case 'details':
@@ -210,13 +213,52 @@ export default function SendModal({
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Sending from
             </div>
-            <div className="font-semibold">{selectedChain?.name}</div>
+            <div className="font-semibold flex items-center justify-center gap-2">
+              <ChainLogo chainId={selectedChainId} size={20} />
+              {selectedChain?.name}
+            </div>
           </div>
 
-          {/* Step 1: Select Token */}
+          {/* Step 1: Chain Selection */}
+          {step === 'chain' && (
+            <div className="space-y-4">
+              <h3 className="font-semibold">Select Network</h3>
+              <div className="space-y-3">
+                <ChainSelector
+                  currentChainId={selectedChainId}
+                  onChainChange={setSelectedChainId}
+                />
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Selected Network
+                  </div>
+                  <div className="font-semibold">{selectedChain?.name}</div>
+                </div>
+              </div>
+              <Button
+                onClick={() => setStep('select')}
+                className="w-full"
+                disabled={!selectedChain}
+              >
+                Continue to Token Selection
+              </Button>
+            </div>
+          )}
+
+          {/* Step 2: Select Token */}
           {step === 'select' && (
             <div className="space-y-4">
-              <h3 className="font-semibold">Select Token to Send</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep('chain')}
+                  className="p-0 h-auto text-blue-600"
+                >
+                  ← Back
+                </Button>
+                <span className="text-lg">Select Token to Send</span>
+              </div>
               <div className="space-y-2">
                 {balances.map((token, index) => (
                   <div
@@ -424,6 +466,16 @@ export default function SendModal({
             >
               Cancel
             </Button>
+            
+            {step === 'chain' && (
+              <Button
+                onClick={() => setStep('select')}
+                disabled={!selectedChain}
+                className="flex-1"
+              >
+                Continue
+              </Button>
+            )}
             
             {step === 'details' && (
               <Button

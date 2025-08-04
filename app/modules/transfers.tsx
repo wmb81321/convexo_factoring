@@ -37,8 +37,8 @@ export default function Transfers() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">Transfers</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
+        <h1 className="text-3xl font-bold text-white">Transfers</h1>
+        <p className="text-lg text-white">
           Send and receive tokens with your smart wallet or embedded wallet
         </p>
       </div>
@@ -120,35 +120,7 @@ export default function Transfers() {
         </CardContent>
       </Card>
 
-      {/* Transfer Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Transfer Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button 
-              onClick={() => setShowSendModal(true)}
-              disabled={!currentWalletAddress}
-              className="h-16 text-lg"
-              variant="default"
-            >
-              <Send className="w-6 h-6 mr-2" />
-              Send Tokens
-            </Button>
-            
-            <Button 
-              onClick={() => setShowReceiveModal(true)}
-              disabled={!currentWalletAddress}
-              className="h-16 text-lg"
-              variant="outline"
-            >
-              <Download className="w-6 h-6 mr-2" />
-              Receive Tokens
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Token Balances */}
       {currentWalletAddress && (
