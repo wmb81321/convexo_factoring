@@ -81,12 +81,12 @@ export default function CustomSwap() {
       
       // Fetch pool state from your actual V3 pool
       console.log('🏊 Fetching pool state from your V3 pool:', ACTUAL_V3_POOL.address);
-      const poolData = await getPoolState({client,poolAddress: ACTUAL_V3_POOL.address});
+      const poolData = await getPoolState(UPDATED_POOL_INFO);
       setPoolState(poolData);
       
-      console.log('✅ Pool state from your V3 pool:', poolData);
+      console.log('✅ Pool state from your V3 pool:', ACTUAL_V3_POOL.address);
     } catch (error) {
-      console.error('❌ Error fetching data from your V3 pool:', error);
+      console.error('❌ Error fetching data from your V3 pool:', ACTUAL_V3_POOL.address);
       // Fallback for demo purposes
       setPoolState({
         price: 1.0,
