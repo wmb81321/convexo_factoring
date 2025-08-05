@@ -1,70 +1,11 @@
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { usePrivy } from "@privy-io/react-auth";
-import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
-import { useState } from "react";
-import React from "react";
-import ChainSelector from "./chain-selector";
-import TokenBalances from "./token-balances";
-import { getChainById, DEFAULT_CHAIN } from "@/lib/chains";
+
 import TokenIcon from "./token-icon";
 
 export default function PrivySmartWallet() {
-  const { user, logout } = usePrivy();
-  const { client: smartWalletClient } = useSmartWallets();
-  const [selectedChainId, setSelectedChainId] = useState(DEFAULT_CHAIN.chainId);
-  const [isExporting, setIsExporting] = useState(false);
-  const [smartWalletAddress, setSmartWalletAddress] = useState<string | null>(null);
 
-  // Get embedded wallet (foundation for smart wallet functionality)
-  const embeddedWallet = user?.linkedAccounts?.find(
-    (account) => account.type === 'wallet'
-  );
-  const selectedChain = getChainById(selectedChainId);
-
-  // Get the actual smart wallet address from the client
-  React.useEffect(() => {
-    const getSmartWalletAddress = async () => {
-      if (smartWalletClient && !smartWalletAddress) {
-        try {
-          // The smart wallet client has the actual smart wallet address
-          const address = smartWalletClient.account?.address;
-          if (address) {
-            setSmartWalletAddress(address);
-          }
-        } catch (error) {
-          console.error('Error getting smart wallet address:', error);
-        }
-      }
-    };
-
-    getSmartWalletAddress();
-  }, [smartWalletClient, smartWalletAddress]);
-
-  const handleExportWallet = async () => {
-    const addressToShow = smartWalletAddress || embeddedWallet?.address;
-    if (!addressToShow) return;
-    
-    setIsExporting(true);
-    try {
-      console.log('Smart wallet address:', addressToShow);
-      alert(`Smart wallet address: ${addressToShow}`);
-    } catch (error) {
-      console.error("Error with smart wallet:", error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleChainChange = (chainId: number) => {
-    setSelectedChainId(chainId);
-  };
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -73,17 +14,20 @@ export default function PrivySmartWallet() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TokenIcon symbol="COPE" size={32} />
-            Convexo Smart Wallet Active!
+            🎉 Welcome to Convexo - Smart Wallet Dashboard
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6 
                 border border-blue-200 dark:border-blue-800">
             <h3 className="text-xl font-semibold mb-4 text-blue-800 dark:text-blue-400">
-              🎉 Welcome to the Future of Web3!
+              🚀 Welcome to the Future of Web3!
             </h3>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Your smart wallet is active with gasless transactions powered by Alchemy across multiple testnets. Account abstraction enabled!
+              Your smart wallet is ready for gasless transactions and cross-chain DeFi. 
+              Experience seamless Web3 with account abstraction powered by Alchemy. 
+              Access your detailed wallet information in <strong>Profile</strong> and 
+              start sending tokens in <strong>Transfers</strong>.
             </p>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
@@ -109,158 +53,8 @@ export default function PrivySmartWallet() {
         </CardContent>
       </Card>
 
-      {/* Chain Selector & Wallet Info */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Chain & Network Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Network & Chain</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Chain Selector */}
-            <div>
-              <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-2">
-                Select Testnet
-              </label>
-              <ChainSelector
-                currentChainId={selectedChainId}
-                onChainChange={handleChainChange}
-              />
-            </div>
 
-            {/* Current Chain Info */}
-            {selectedChain && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold mb-2">Current Network</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Name:</span>
-                    <span className="font-medium">{selectedChain.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Chain ID:</span>
-                    <span className="font-mono">{selectedChain.chainId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Currency:</span>
-                    <span className="font-medium">{selectedChain.nativeCurrency.symbol}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Bundler:</span>
-                    <span className="text-green-600">✅ Active</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* User & Wallet Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* User Details */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <h4 className="font-semibold mb-2">User Details</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Email:</span>
-                  <span className="font-mono text-xs">{user?.email?.address || 'Not provided'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Phone:</span>
-                  <span className="font-mono text-xs">{user?.phone?.number || 'Not provided'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Smart Wallet:</span>
-                  <span className="font-medium">{smartWalletAddress ? '✅ Active' : '❌ Loading...'}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Smart Wallet Details - ACTUAL SMART WALLET ADDRESS */}
-            {smartWalletAddress ? (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                <h4 className="font-semibold mb-2 text-blue-800 dark:text-blue-400">
-                  🚀 Smart Wallet (Account Abstraction)
-                </h4>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-1">
-                      Smart Wallet Address
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 p-2 bg-white dark:bg-gray-700 rounded border text-sm font-mono">
-                        {smartWalletAddress}
-                      </code>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigator.clipboard.writeText(smartWalletAddress)}
-                      >
-                        Copy
-                      </Button>
-                    </div>
-                  </div>
-
-                  {embeddedWallet && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-1">
-                        Embedded Wallet (Owner)
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 p-2 bg-gray-100 dark:bg-gray-700 rounded border text-xs font-mono text-gray-600">
-                          {embeddedWallet.address}
-                        </code>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigator.clipboard.writeText(embeddedWallet.address)}
-                        >
-                          Copy
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportWallet}
-                      disabled={isExporting}
-                    >
-                      {isExporting ? "View Address..." : "View Address"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(`${selectedChain?.blockExplorer}/address/${smartWalletAddress}`, '_blank')}
-                    >
-                      View on Explorer
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
-                <h4 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
-                  ⚠️ Smart Wallet Loading
-                </h4>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  Smart wallet is being initialized. Please wait...
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-
-
-      {/* Integration Status */}
+      {/* Smart Wallet Status & Features */}
       <Card>
         <CardHeader>
           <CardTitle>🎯 Multi-Chain Smart Wallet Status</CardTitle>
