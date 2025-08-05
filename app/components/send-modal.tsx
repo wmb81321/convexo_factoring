@@ -119,11 +119,12 @@ export default function SendModal({
     resetSponsorship();
     
     try {
-      console.log('🚀 Attempting sponsored transaction:', {
+      console.log(`🚀 Attempting ${isSmartWallet ? 'sponsored' : 'regular'} transaction:`, {
         token: selectedToken.symbol,
         to: recipientAddress,
         amount: amount,
-        chain: chainId,
+        chain: selectedChainId,
+        walletType: walletType,
       });
 
       // Determine decimals for the token
@@ -131,27 +132,61 @@ export default function SendModal({
       if (selectedToken.symbol === 'USDC') decimals = 6;
       if (selectedToken.symbol === 'COPE') decimals = 6;
 
-      // Use the new sponsored transaction flow
-      await sendSponsoredTransaction({
-        recipient: recipientAddress,
-        amount: amount,
-        tokenAddress: selectedToken.symbol === 'ETH' ? undefined : selectedToken.contract,
-        decimals: decimals,
-        chainId: selectedChainId,
-      });
+      let transactionHash: string;
 
-      // Get transaction hash from sponsorship status
-      const transactionHash = sponsorshipStatus.transactionHash;
+      if (isSmartWallet) {
+        // Use sponsored transaction flow for smart wallets
+        await sendSponsoredTransaction({
+          recipient: recipientAddress,
+          amount: amount,
+          tokenAddress: selectedToken.symbol === 'ETH' ? undefined : selectedToken.contract,
+          decimals: decimals,
+          chainId: selectedChainId,
+        });
+
+        // Get transaction hash from sponsorship status
+        transactionHash = sponsorshipStatus.transactionHash || '';
+      } else {
+        // Use regular transaction flow for embedded wallets
+        console.log('📝 Using embedded wallet transaction flow');
+        
+        if (selectedToken.symbol === 'ETH') {
+          // Native ETH transfer
+          const txResponse = await sendTransaction({
+            to: recipientAddress as `0x${string}`,
+            value: parseEther(amount),
+            chainId: selectedChainId,
+          });
+          transactionHash = txResponse.hash;
+        } else {
+          // ERC-20 token transfer
+          const tokenAmount = parseUnits(amount, decimals);
+          
+          // ERC-20 transfer function call data
+          const transferSelector = '0xa9059cbb';
+          const recipientPadded = recipientAddress.slice(2).padStart(64, '0');
+          const amountPadded = tokenAmount.toString(16).padStart(64, '0');
+          const callData = `${transferSelector}${recipientPadded}${amountPadded}`;
+
+          const txResponse = await sendTransaction({
+            to: selectedToken.contract as `0x${string}`,
+            data: callData as `0x${string}`,
+            chainId: selectedChainId,
+          });
+          transactionHash = txResponse.hash;
+        }
+      }
+
       if (transactionHash) {
         setTxHash(transactionHash);
       }
 
-      // Show success message with sponsorship info
-      const sponsorshipText = sponsorshipStatus.isSponsored 
+      // Show success message with appropriate info
+      const paymentText = isSmartWallet 
         ? '🎉 GASLESS TRANSACTION!' 
-        : '⚠️ User paid gas';
+        : '💰 Transaction sent (gas paid)';
 
-      const successMessage = `✅ Transaction sent!\n\n${sponsorshipText}\n\n${amount} ${selectedToken.symbol} → ` +
+      const successMessage = `✅ Transaction sent!\n\n${paymentText}\n\n${amount} ${selectedToken.symbol} → ` +
         `${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}` +
         (transactionHash ? `\n\nTx Hash: ${transactionHash.slice(0, 10)}...` : '');
       
@@ -173,7 +208,9 @@ export default function SendModal({
       } else if (errorMessage.includes('gas')) {
         userMessage = 'Gas estimation failed. The network may be congested.';
       } else if (errorMessage.includes('rejected')) {
-        userMessage = 'Transaction was rejected.';
+        userMessage = 'Transaction was rejected by user.';
+      } else if (errorMessage.includes('No smart wallet connected')) {
+        userMessage = 'Smart wallet not available. Try using embedded wallet instead.';
       }
       
       alert(`❌ ${userMessage}\n\nError details: ${errorMessage}`);
@@ -520,14 +557,25 @@ export default function SendModal({
               </div>
 
               {/* Transaction Fee Info */}
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                <div className="text-sm text-green-800 dark:text-green-200">
-                  <strong>✨ Gasless Transaction</strong>
-                  <div className="text-xs mt-1">
-                    This transaction will be sponsored by Alchemy. No ETH needed for gas!
+              {isSmartWallet ? (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                  <div className="text-sm text-green-800 dark:text-green-200">
+                    <strong>✨ Gasless Transaction</strong>
+                    <div className="text-xs mt-1">
+                      This transaction will be sponsored by Alchemy. No ETH needed for gas!
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <div className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>💰 Regular Transaction</strong>
+                    <div className="text-xs mt-1">
+                      You will pay gas fees for this transaction. Make sure you have enough ETH on {selectedChain?.name}.
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

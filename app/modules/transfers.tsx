@@ -123,6 +123,51 @@ export default function Transfers() {
 
 
 
+      {/* Action Buttons */}
+      {currentWalletAddress && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Quick Actions</span>
+              <Badge variant={isSmartWalletSelected ? "default" : "secondary"}>
+                {isSmartWalletSelected ? 'Gas Sponsored' : 'User Pays Gas'}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button
+                onClick={() => setShowSendModal(true)}
+                className="flex items-center gap-2 h-12"
+                variant={isSmartWalletSelected ? "default" : "outline"}
+              >
+                <Send className="w-4 h-4" />
+                Send Tokens
+              </Button>
+              <Button
+                onClick={() => setShowReceiveModal(true)}
+                variant="outline"
+                className="flex items-center gap-2 h-12"
+              >
+                <Download className="w-4 h-4" />
+                Receive Tokens
+              </Button>
+            </div>
+            
+            {!isSmartWalletSelected && (
+              <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <strong>⚠️ Embedded Wallet Notice:</strong>
+                  <div className="text-xs mt-1">
+                    You&apos;ll need to pay gas fees for transactions. Make sure you have enough ETH for gas.
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Token Balances */}
       {currentWalletAddress && (
         <Card>
