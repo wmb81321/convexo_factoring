@@ -3,8 +3,12 @@
 import { SwapWidget } from '@uniswap/widgets';
 import '@uniswap/widgets/fonts.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, ExternalLink } from "lucide-react";
+import { Zap, ExternalLink, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSmartWallet } from "@/app/hooks/useSmartWallet";
+import { usePrivy } from "@privy-io/react-auth";
+import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
+import { useEffect, useState } from "react";
 
 // Custom token list for Ethereum Sepolia - NO EXTERNAL DEPENDENCIES
 const SEPOLIA_TOKEN_LIST = [
@@ -40,6 +44,59 @@ const jsonRpcUrlMap = {
 };
 
 export default function SimpleSwap() {
+  const { user } = usePrivy();
+  const { client } = useSmartWallets();
+  const { smartWalletAddress, wallet } = useSmartWallet();
+  const [provider, setProvider] = useState<any>(null);
+
+  // Get the smart wallet provider for Uniswap widget
+  useEffect(() => {
+    const getProvider = async () => {
+      if (client && smartWalletAddress) {
+        try {
+          // Get the provider from the smart wallet client
+          if (client.transport && 'request' in client.transport) {
+            console.log('✅ SwapWidget: Smart wallet provider ready', smartWalletAddress);
+            setProvider(client);
+          } else {
+            console.log('⚠️ SwapWidget: Client available but no transport found');
+          }
+        } catch (error) {
+          console.error('❌ SwapWidget: Error getting provider:', error);
+        }
+      }
+    };
+
+    getProvider();
+  }, [client, smartWalletAddress]);
+
+  // Handle wallet connection for the swap widget
+  const handleConnectWallet = () => {
+    console.log('SwapWidget connect wallet clicked - already connected via smart wallet');
+    // Return false to prevent widget's default connection flow
+    return false;
+  };
+
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5" />
+            USDC ⇄ COPE Swap
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-center py-8">
+          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Connect Wallet</h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            Please connect your wallet to use the swap feature
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -62,10 +119,13 @@ export default function SimpleSwap() {
       <CardContent className="p-0">
         <div className="flex justify-center">
           <SwapWidget 
+            provider={provider} // Pass the smart wallet provider
             jsonRpcUrlMap={jsonRpcUrlMap}
             tokenList={SEPOLIA_TOKEN_LIST}
             defaultInputTokenAddress="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
             defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219"
+            onConnectWalletClick={handleConnectWallet} // Handle wallet connection
+            hideConnectionUI={provider ? false : true} // Hide connection UI if no provider
             width={380}
             theme={{
               primary: '#4B66F3',
@@ -86,6 +146,11 @@ export default function SimpleSwap() {
           <p className="text-sm text-gray-600 dark:text-gray-300">
             Trade on Ethereum Sepolia • USDC-COPE Liquidity Pool
           </p>
+          {smartWalletAddress && (
+            <p className="text-xs text-green-600 mt-1">
+              ✅ Connected: {smartWalletAddress.slice(0, 6)}...{smartWalletAddress.slice(-4)}
+            </p>
+          )}
           <p className="text-xs text-gray-500 mt-1">
             Pool Address: 
             <a 

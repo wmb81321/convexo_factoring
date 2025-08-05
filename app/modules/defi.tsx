@@ -64,7 +64,7 @@ interface UserPortfolio {
 }
 
 export default function DeFi() {
-  const { wallet, isSmartWallet, canUseGasSponsorship } = useSmartWallet();
+  const { wallet, isSmartWallet, canUseGasSponsorship, smartWalletAddress } = useSmartWallet();
   
   const [allChainsBalances, setAllChainsBalances] = useState<{ [chainId: number]: TokenBalance[] }>({});
   const [poolAnalytics, setPoolAnalytics] = useState<PoolAnalytics | null>(null);
@@ -92,17 +92,20 @@ export default function DeFi() {
 
   // Fetch all data
   const fetchData = useCallback(async () => {
-    if (!wallet?.address) {
+    // Use smart wallet address if available, fallback to embedded wallet
+    const activeAddress = smartWalletAddress || wallet?.address;
+    
+    if (!activeAddress) {
       console.log('⚠️ DeFi: No wallet address available');
       return;
     }
 
     setIsLoading(true);
     try {
-      console.log(`🔍 DeFi: Fetching data for ${wallet.address} (${isSmartWallet ? 'Smart Wallet' : 'External Wallet'})`);
+      console.log(`🔍 DeFi: Fetching data for ${activeAddress} (${isSmartWallet ? 'Smart Wallet' : 'External Wallet'})`);
       
       // Fetch multi-chain balances
-      const balances = await fetchAllChainsBalances(wallet.address);
+      const balances = await fetchAllChainsBalances(activeAddress);
       setAllChainsBalances(balances);
       
       // Fetch pool analytics from Uniswap subgraph
@@ -110,7 +113,7 @@ export default function DeFi() {
       setPoolAnalytics(analytics);
       
       // Fetch user DeFi portfolio
-      const portfolio = await getUserDeFiPortfolio(wallet.address);
+      const portfolio = await getUserDeFiPortfolio(activeAddress);
       setUserPortfolio(portfolio);
       
       // Fetch market data for price feeds
@@ -127,11 +130,11 @@ export default function DeFi() {
     } finally {
       setIsLoading(false);
     }
-  }, [wallet?.address, isSmartWallet]);
+  }, [wallet?.address, smartWalletAddress, isSmartWallet]);
 
   useEffect(() => {
     fetchData();
-  }, [wallet?.address, fetchData]);
+  }, [smartWalletAddress, wallet?.address, fetchData]);
 
   const formatNumber = (num: number, decimals: number = 2): string => {
     return new Intl.NumberFormat('en-US', {
@@ -153,7 +156,7 @@ export default function DeFi() {
     return `${value.toFixed(2)}%`;
   };
 
-  if (!wallet?.address) {
+  if (!smartWalletAddress && !wallet?.address) {
     return (
       <div className="space-y-6">
         <Card>
@@ -182,12 +185,17 @@ export default function DeFi() {
           </p>
           
           {/* Wallet Status */}
-          <div className="mt-2">
+          <div className="mt-2 space-y-1">
             <Badge variant={isSmartWallet ? "default" : "secondary"} className="gap-2">
               {isSmartWallet && "🚀 Smart Wallet"}
               {!isSmartWallet && "🦊 External Wallet"}
               {canUseGasSponsorship && " • Gas Sponsored"}
             </Badge>
+            {smartWalletAddress && (
+              <div className="text-xs text-gray-400 font-mono">
+                {smartWalletAddress.slice(0, 8)}...{smartWalletAddress.slice(-6)}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
