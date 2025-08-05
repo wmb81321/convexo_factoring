@@ -24,7 +24,7 @@ import {
 import { fetchAllChainsBalances, getAggregatedBalanceSummary } from "@/lib/blockchain";
 import { getPoolAnalytics, getUserDeFiPortfolio } from "@/lib/uniswap-subgraph";
 import { fetchMarketData } from "@/lib/pool-data";
-import SimpleSwap from "@/app/components/simple-swap";
+import CustomSwap from "@/app/components/custom-swap";
 import { useSmartWallet } from "@/app/hooks/useSmartWallet";
 import TokenIcon from "@/app/components/token-icon";
 import { getChainById } from "@/lib/chains";
@@ -456,8 +456,8 @@ export default function DeFi() {
         </CardContent>
       </Card>
 
-      {/* USDC-COPE LP Swap Interface */}
-      <SimpleSwap />
+      {/* USDC-COPE Direct Swap Interface */}
+      <CustomSwap />
 
       {/* User Positions */}
       <Card>

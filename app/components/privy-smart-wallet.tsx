@@ -87,11 +87,11 @@ export default function PrivySmartWallet() {
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-center gap-2">
                   <span className="text-green-500">✅</span>
-                  <span>ETH (Native) - All chains</span>
+                  <span>ETH (Native) - Ethereum Sepolia, Unichain Sepolia, Optimism Sepolia, Base Sepolia</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-green-500">✅</span>
-                  <span>USDC - Ethereum Sepolia</span>
+                  <span>USDC - Ethereum Sepolia, Unichain Sepolia, Optimism Sepolia, Base Sepolia</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-green-500">✅</span>
