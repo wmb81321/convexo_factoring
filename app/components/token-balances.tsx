@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, ExternalLink, Copy, Check, AlertCircle, Send, Download, Globe } from "lucide-react";
+import { RefreshCw, ExternalLink, Copy, Check, AlertCircle, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllChains, getChainById, ChainConfig } from "@/lib/chains";
 import { fetchAllChainsBalances, getAggregatedBalanceSummary, TokenBalance } from "@/lib/blockchain";
 import ChainLogo from "./chain-logo";
-import SendModal from "./send-modal";
-import ReceiveModal from "./receive-modal";
 import TokenIcon from "./token-icon";
 
 interface TokenBalancesProps {
@@ -20,9 +18,6 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
-  const [showSendModal, setShowSendModal] = useState(false);
-  const [showReceiveModal, setShowReceiveModal] = useState(false);
-  const [selectedChain, setSelectedChain] = useState<number>(11155111); // Default to Ethereum Sepolia
 
   const chains = getAllChains();
   const aggregatedSummary = getAggregatedBalanceSummary(allChainsBalances);
@@ -167,25 +162,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
 
 
 
-          {/* Send & Receive Buttons */}
-          <div className="flex gap-3">
-            <Button
-              onClick={() => setShowReceiveModal(true)}
-              variant="outline"
-              className="flex-1 gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Receive
-            </Button>
-            <Button
-              onClick={() => setShowSendModal(true)}
-              className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700"
-              disabled={allTokens.length === 0}
-            >
-              <Send className="h-4 w-4" />
-              Send
-            </Button>
-          </div>
+
 
           {/* Token Balances by Chain */}
           <div className="space-y-4">
@@ -244,22 +221,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
         </CardContent>
       </Card>
 
-      {/* Send Modal */}
-      <SendModal
-        isOpen={showSendModal}
-        onClose={() => setShowSendModal(false)}
-        walletAddress={walletAddress}
-        chainId={selectedChain}
-        balances={Object.values(allChainsBalances).flat()}
-      />
 
-      {/* Receive Modal */}
-      <ReceiveModal
-        isOpen={showReceiveModal}
-        onClose={() => setShowReceiveModal(false)}
-        walletAddress={walletAddress}
-        chainId={selectedChain}
-      />
     </>
   );
 } 
