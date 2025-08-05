@@ -24,6 +24,7 @@ import { getPoolAnalytics, getUserDeFiPortfolio } from "@/lib/uniswap-subgraph";
 import { fetchMarketData } from "@/lib/pool-data";
 import SimpleSwap from "@/app/components/simple-swap";
 import { useSmartWallet } from "@/app/hooks/useSmartWallet";
+import TokenIcon from "@/app/components/token-icon";
 
 interface TokenBalance {
   symbol: string;
@@ -175,8 +176,8 @@ export default function DeFi() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">DeFi Hub</h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <h1 className="text-3xl font-bold text-white">DeFi Hub</h1>
+          <p className="text-lg text-white">
             Manage your DeFi positions and track pool analytics
           </p>
           
@@ -220,7 +221,7 @@ export default function DeFi() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <div className="text-2xl">💎</div>
+                <TokenIcon symbol="ETH" size={40} />
                 <div>
                   <div className="font-semibold">{formatNumber(aggregatedSummary.totalEth, 6)} ETH</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">
@@ -232,7 +233,7 @@ export default function DeFi() {
             
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <div className="text-2xl">💵</div>
+                <TokenIcon symbol="USDC" size={40} />
                 <div>
                   <div className="font-semibold">{formatNumber(aggregatedSummary.totalUsdc, 2)} USDC</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">
@@ -244,7 +245,7 @@ export default function DeFi() {
             
             <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
                <div className="flex items-center gap-3">
-                 <div className="text-2xl">🚀</div>
+                 <TokenIcon symbol="COPE" size={40} />
                  <div>
                    <div className="font-semibold">{formatNumber(aggregatedSummary.totalCope, 2)} COPE</div>
                    <div className="text-sm text-gray-600 dark:text-gray-300">

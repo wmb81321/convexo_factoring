@@ -9,6 +9,7 @@ import { fetchAllChainsBalances, getAggregatedBalanceSummary, TokenBalance } fro
 import ChainLogo from "./chain-logo";
 import SendModal from "./send-modal";
 import ReceiveModal from "./receive-modal";
+import TokenIcon from "./token-icon";
 
 interface TokenBalancesProps {
   walletAddress: string;
@@ -66,14 +67,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
     }
   };
 
-  const getTokenIcon = (symbol: string) => {
-    switch (symbol) {
-      case "ETH": return "💎";
-      case "USDC": return "💵";
-      case "COPE": return "🚀";
-      default: return "🪙";
-    }
-  };
+
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -155,17 +149,17 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
           {/* Summary Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <div className="text-2xl">💎</div>
+                              <TokenIcon symbol="ETH" size={40} />
               <div className="font-semibold">{formatNumber(aggregatedSummary.totalEth, 6)} ETH</div>
               <div className="text-sm text-gray-500">Total across all chains</div>
             </div>
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-              <div className="text-2xl">💵</div>
+              <TokenIcon symbol="USDC" size={40} />
               <div className="font-semibold">{formatNumber(aggregatedSummary.totalUsdc, 2)} USDC</div>
               <div className="text-sm text-gray-500">Total across all chains</div>
             </div>
             <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-              <div className="text-2xl">🚀</div>
+              <TokenIcon symbol="COPE" size={40} />
               <div className="font-semibold">{formatNumber(aggregatedSummary.totalCope, 2)} COPE</div>
               <div className="text-sm text-gray-500">Total across all chains</div>
             </div>
@@ -201,7 +195,7 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
               <div key={token.symbol} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{getTokenIcon(token.symbol)}</span>
+                    <TokenIcon symbol={token.symbol} size={40} />
                     <div>
                       <div className="font-semibold">{token.symbol}</div>
                       <div className="text-sm text-gray-500">{token.name}</div>

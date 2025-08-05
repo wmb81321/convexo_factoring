@@ -10,6 +10,7 @@ import SendModal from "@/app/components/send-modal";
 import ReceiveModal from "@/app/components/receive-modal";
 import { useSmartWallet } from "@/app/hooks/useSmartWallet";
 import { DEFAULT_CHAIN } from "@/lib/chains";
+import TokenIcon from "@/app/components/token-icon";
 
 type WalletType = 'smart' | 'embedded';
 
@@ -63,7 +64,7 @@ export default function Transfers() {
               onClick={() => setSelectedWalletType('smart')}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">🚀</span>
+                <TokenIcon symbol="COPE" size={32} />
                 <div>
                   <h3 className="font-semibold">Smart Wallet</h3>
                   <Badge variant="secondary" className="text-xs">

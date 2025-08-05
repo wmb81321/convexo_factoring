@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, QrCode, Send, AlertCircle, ArrowRight, Network } from "lucide-react";
+import { X, QrCode, Send, AlertCircle, ArrowRight, Network, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getChainById, SUPPORTED_CHAINS } from "@/lib/chains";
-import { TokenBalance } from "@/lib/blockchain";
+import { getChainById, SUPPORTED_CHAINS, getChainTokens } from "@/lib/chains";
+import { TokenBalance, fetchAllBalances } from "@/lib/blockchain";
 import { useSendTransaction } from "@privy-io/react-auth";
 import { parseEther, parseUnits } from "viem";
 import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
 import ChainSelector from "./chain-selector";
 import ChainLogo from "./chain-logo";
+import TokenIcon from "./token-icon";
 
 interface SendModalProps {
   isOpen: boolean;
@@ -32,14 +33,16 @@ export default function SendModal({
   walletType = 'smart',
   isSmartWallet = true,
 }: SendModalProps) {
-  const [step, setStep] = useState<'chain' | 'select' | 'details' | 'confirm'>('chain');
+  const [step, setStep] = useState<'network' | 'token' | 'details'>('network');
   const [selectedChainId, setSelectedChainId] = useState(chainId);
   const [selectedToken, setSelectedToken] = useState<TokenBalance | null>(null);
+  const [networkTokens, setNetworkTokens] = useState<TokenBalance[]>([]);
   const [recipientAddress, setRecipientAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [isValidAddress, setIsValidAddress] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingTokens, setIsLoadingTokens] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const selectedChain = getChainById(selectedChainId);
@@ -52,15 +55,38 @@ export default function SendModal({
     setIsValidAddress(ethereumAddressRegex.test(recipientAddress));
   }, [recipientAddress]);
 
+  // Fetch tokens for selected network
+  useEffect(() => {
+    const fetchNetworkTokens = async () => {
+      if (!walletAddress) return;
+      
+      setIsLoadingTokens(true);
+      try {
+        // Fetch balances for the selected chain
+        const chainBalances = await fetchAllBalances(walletAddress, selectedChainId);
+        setNetworkTokens(chainBalances);
+      } catch (error) {
+        console.error('Error fetching network tokens:', error);
+        setNetworkTokens([]);
+      } finally {
+        setIsLoadingTokens(false);
+      }
+    };
+
+    fetchNetworkTokens();
+  }, [selectedChainId, walletAddress]);
+
   const resetModal = () => {
-    setStep('chain');
+    setStep('network');
     setSelectedChainId(chainId);
     setSelectedToken(null);
+    setNetworkTokens([]);
     setRecipientAddress("");
     setAmount("");
     setShowQrScanner(false);
     setIsValidAddress(false);
     setIsLoading(false);
+    setIsLoadingTokens(false);
     setTxHash(null);
   };
 
@@ -156,14 +182,7 @@ export default function SendModal({
     }
   };
 
-  const getTokenIcon = (symbol: string) => {
-    switch (symbol) {
-      case "ETH": return "💎";
-      case "USDC": return "💵";
-      case "COPE": return "🚀";
-      default: return "🪙";
-    }
-  };
+
 
   const isAmountValid = () => {
     if (!amount || !selectedToken) return false;
@@ -174,17 +193,68 @@ export default function SendModal({
 
   const canProceed = () => {
     switch (step) {
-      case 'chain':
+      case 'network':
         return selectedChain !== null;
-      case 'select':
+      case 'token':
         return selectedToken !== null;
       case 'details':
         return isValidAddress && isAmountValid();
-      case 'confirm':
-        return true;
       default:
         return false;
     }
+  };
+
+  const getStepNumber = (stepName: string) => {
+    switch (stepName) {
+      case 'network': return 1;
+      case 'token': return 2;
+      case 'details': return 3;
+      default: return 1;
+    }
+  };
+
+  const StepIndicator = () => {
+    const steps = [
+      { number: 1, name: 'network', label: 'Network' },
+      { number: 2, name: 'token', label: 'Token' },
+      { number: 3, name: 'details', label: 'Send' }
+    ];
+
+    return (
+      <div className="flex items-center justify-between mb-6">
+        {steps.map((stepItem, index) => (
+          <div key={stepItem.name} className="flex items-center">
+            <div className="flex items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  getStepNumber(step) >= stepItem.number
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                }`}
+              >
+                {getStepNumber(step) > stepItem.number ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : (
+                  stepItem.number
+                )}
+              </div>
+              <span className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+                {stepItem.label}
+              </span>
+            </div>
+            {index < steps.length - 1 && (
+              <div
+                className={`w-12 h-0.5 mx-4 ${
+                  getStepNumber(step) > stepItem.number
+                    ? 'bg-blue-600'
+                    : 'bg-gray-200 dark:bg-gray-700'
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   if (!isOpen) return null;
@@ -208,21 +278,29 @@ export default function SendModal({
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {/* Chain Info */}
-          <div className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Sending from
-            </div>
-            <div className="font-semibold flex items-center justify-center gap-2">
-              <ChainLogo chainId={selectedChainId} size={20} />
-              {selectedChain?.name}
-            </div>
-          </div>
+          {/* Step Indicator */}
+          <StepIndicator />
 
-          {/* Step 1: Chain Selection */}
-          {step === 'chain' && (
+          {/* Chain Info */}
+          {(step === 'token' || step === 'details') && (
+            <div className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Sending from
+              </div>
+              <div className="font-semibold flex items-center justify-center gap-2">
+                <ChainLogo chainId={selectedChainId} size={20} />
+                {selectedChain?.name}
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Network Selection */}
+          {step === 'network' && (
             <div className="space-y-4">
-              <h3 className="font-semibold">Select Network</h3>
+              <h3 className="font-semibold text-lg">Choose Network</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Select the blockchain network where you want to send tokens.
+              </p>
               <div className="space-y-3">
                 <ChainSelector
                   currentChainId={selectedChainId}
@@ -232,78 +310,110 @@ export default function SendModal({
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     Selected Network
                   </div>
-                  <div className="font-semibold">{selectedChain?.name}</div>
+                  <div className="font-semibold flex items-center justify-center gap-2">
+                    <ChainLogo chainId={selectedChainId} size={20} />
+                    {selectedChain?.name}
+                  </div>
                 </div>
               </div>
-              <Button
-                onClick={() => setStep('select')}
-                className="w-full"
-                disabled={!selectedChain}
-              >
-                Continue to Token Selection
-              </Button>
             </div>
           )}
 
           {/* Step 2: Select Token */}
-          {step === 'select' && (
+          {step === 'token' && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setStep('chain')}
+                  onClick={() => setStep('network')}
                   className="p-0 h-auto text-blue-600"
                 >
                   ← Back
                 </Button>
-                <span className="text-lg">Select Token to Send</span>
+                <span className="text-lg font-semibold">Choose Token</span>
               </div>
-              <div className="space-y-2">
-                {balances.map((token, index) => (
-                  <div
-                    key={`${token.symbol}-${index}`}
-                    onClick={() => !token.error && handleTokenSelect(token)}
-                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                      token.error 
-                        ? "bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-50"
-                        : "hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{getTokenIcon(token.symbol)}</span>
-                        <div>
-                          <div className="font-medium">{token.symbol}</div>
-                          <div className="text-sm text-gray-500">{token.name}</div>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Select the token you want to send on {selectedChain?.name}.
+              </p>
+              
+              {isLoadingTokens ? (
+                <div className="text-center py-8">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-sm text-gray-500">Loading tokens...</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {networkTokens.length > 0 ? (
+                    networkTokens.map((token, index) => (
+                      <div
+                        key={`${token.symbol}-${index}`}
+                        onClick={() => !token.error && handleTokenSelect(token)}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          token.error 
+                            ? "bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-50"
+                            : "hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <TokenIcon symbol={token.symbol} size={40} />
+                            <div>
+                              <div className="font-medium">{token.symbol}</div>
+                              <div className="text-sm text-gray-500">{token.name}</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-medium">{token.formattedBalance}</div>
+                            {token.usdValue && (
+                              <div className="text-sm text-gray-500">{token.usdValue}</div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium">{token.formattedBalance}</div>
-                        {token.usdValue && (
-                          <div className="text-sm text-gray-500">{token.usdValue}</div>
-                        )}
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Tokens Found</h3>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        No tokens available on {selectedChain?.name}
+                      </p>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Step 2: Enter Details */}
+          {/* Step 3: Enter Details */}
           {step === 'details' && selectedToken && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setStep('select')}
+                  onClick={() => setStep('token')}
                   className="p-0 h-auto text-blue-600"
                 >
                   ← Back
                 </Button>
-                <span className="text-lg">Send {selectedToken.symbol}</span>
+                <span className="text-lg font-semibold">Send {selectedToken.symbol}</span>
+              </div>
+              
+              {/* Selected Token Info */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                <div className="flex items-center gap-3">
+                  <TokenIcon symbol={selectedToken.symbol} size={40} />
+                  <div>
+                    <div className="font-medium">{selectedToken.symbol}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Balance: {selectedToken.formattedBalance}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Recipient Address */}
@@ -393,6 +503,22 @@ export default function SendModal({
                 </div>
               </div>
 
+              {/* Warning Message */}
+              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <div className="font-medium text-orange-800 dark:text-orange-200 mb-1">
+                      ⚠️ Important Warning
+                    </div>
+                    <div className="text-orange-700 dark:text-orange-300">
+                      Please ensure your receiver can accept {selectedToken.symbol} tokens on {selectedChain?.name}. 
+                      Some exchanges and wallets don&apos;t support some chains and tokens.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Transaction Fee Info */}
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                 <div className="text-sm text-green-800 dark:text-green-200">
@@ -405,57 +531,7 @@ export default function SendModal({
             </div>
           )}
 
-          {/* Step 3: Confirm Transaction */}
-          {step === 'confirm' && selectedToken && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setStep('details')}
-                  className="p-0 h-auto text-blue-600"
-                >
-                  ← Back
-                </Button>
-                <span className="text-lg">Confirm Transaction</span>
-              </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">From:</span>
-                  <span className="font-mono text-sm">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
-                </div>
-                
-                <div className="flex items-center justify-center">
-                  <ArrowRight className="h-4 w-4 text-gray-400" />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">To:</span>
-                  <span className="font-mono text-sm">{recipientAddress.slice(0, 6)}...{recipientAddress.slice(-4)}</span>
-                </div>
-                
-                <div className="border-t pt-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Amount:</span>
-                    <div className="text-right">
-                      <div className="font-semibold">{amount} {selectedToken.symbol}</div>
-                      {selectedToken.usdValue && (
-                        <div className="text-sm text-gray-500">
-                          ≈ ${(parseFloat(amount) * parseFloat(selectedToken.usdValue.replace('$', ''))).toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-gray-600">Network Fee:</span>
-                    <span className="text-green-600 font-medium">Free (Sponsored)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t">
@@ -467,31 +543,31 @@ export default function SendModal({
               Cancel
             </Button>
             
-            {step === 'chain' && (
+            {step === 'network' && (
               <Button
-                onClick={() => setStep('select')}
+                onClick={() => setStep('token')}
                 disabled={!selectedChain}
                 className="flex-1"
               >
-                Continue
+                Continue to Tokens
+              </Button>
+            )}
+            
+            {step === 'token' && (
+              <Button
+                onClick={() => setStep('details')}
+                disabled={!selectedToken}
+                className="flex-1"
+              >
+                Continue to Details
               </Button>
             )}
             
             {step === 'details' && (
               <Button
-                onClick={() => setStep('confirm')}
-                disabled={!canProceed()}
-                className="flex-1"
-              >
-                Review Transaction
-              </Button>
-            )}
-            
-            {step === 'confirm' && (
-              <Button
                 onClick={handleSendTransaction}
-                disabled={isLoading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                disabled={isLoading || !canProceed()}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
@@ -499,7 +575,7 @@ export default function SendModal({
                     Sending...
                   </div>
                 ) : (
-                  "Send Transaction"
+                  "🚀 SEND IT"
                 )}
               </Button>
             )}

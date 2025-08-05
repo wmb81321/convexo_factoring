@@ -9,6 +9,7 @@ import React from "react";
 import ChainSelector from "./chain-selector";
 import TokenBalances from "./token-balances";
 import { getChainById, DEFAULT_CHAIN } from "@/lib/chains";
+import TokenIcon from "./token-icon";
 
 export default function PrivySmartWallet() {
   const { user, logout } = usePrivy();
@@ -71,7 +72,7 @@ export default function PrivySmartWallet() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-2xl">🚀</span>
+            <TokenIcon symbol="COPE" size={32} />
             Convexo Smart Wallet Active!
           </CardTitle>
         </CardHeader>
