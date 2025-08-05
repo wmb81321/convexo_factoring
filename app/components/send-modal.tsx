@@ -34,7 +34,7 @@ export default function SendModal({
   walletType = 'smart',
   isSmartWallet = true,
 }: SendModalProps) {
-  const [step, setStep] = useState<'network' | 'token' | 'details'>('network');
+  const [step, setStep] = useState<'network' | 'token' | 'details' | 'confirm'>('network');
   const [selectedChainId, setSelectedChainId] = useState(chainId);
   const [selectedToken, setSelectedToken] = useState<TokenBalance | null>(null);
   const [networkTokens, setNetworkTokens] = useState<TokenBalance[]>([]);
@@ -45,6 +45,7 @@ export default function SendModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingTokens, setIsLoadingTokens] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const selectedChain = getChainById(selectedChainId);
   const { sendTransaction } = useSendTransaction();
@@ -89,6 +90,7 @@ export default function SendModal({
     setIsLoading(false);
     setIsLoadingTokens(false);
     setTxHash(null);
+    setShowSuccess(false);
   };
 
   const handleClose = () => {
@@ -180,23 +182,8 @@ export default function SendModal({
 
       if (transactionHash) {
         setTxHash(transactionHash);
+        setShowSuccess(true);
       }
-
-      // Show success message with appropriate info
-      const paymentText = isSmartWallet 
-        ? '🎉 GASLESS TRANSACTION!' 
-        : '💰 Transaction sent (gas paid)';
-
-      const successMessage = `✅ Transaction sent!\n\n${paymentText}\n\n${amount} ${selectedToken.symbol} → ` +
-        `${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}` +
-        (transactionHash ? `\n\nTx Hash: ${transactionHash.slice(0, 10)}...` : '');
-      
-      alert(successMessage);
-      
-      // Wait a moment before closing to show the hash
-      setTimeout(() => {
-        handleClose();
-      }, 2000);
       
     } catch (error) {
       console.error('❌ Transaction failed:', error);
@@ -237,6 +224,8 @@ export default function SendModal({
         return selectedToken !== null;
       case 'details':
         return isValidAddress && isAmountValid();
+      case 'confirm':
+        return selectedToken && isValidAddress && isAmountValid();
       default:
         return false;
     }
@@ -247,6 +236,7 @@ export default function SendModal({
       case 'network': return 1;
       case 'token': return 2;
       case 'details': return 3;
+      case 'confirm': return 4;
       default: return 1;
     }
   };
@@ -255,7 +245,8 @@ export default function SendModal({
     const steps = [
       { number: 1, name: 'network', label: 'Network' },
       { number: 2, name: 'token', label: 'Token' },
-      { number: 3, name: 'details', label: 'Send' }
+      { number: 3, name: 'details', label: 'Details' },
+      { number: 4, name: 'confirm', label: 'Confirm' }
     ];
 
     return (
@@ -320,7 +311,7 @@ export default function SendModal({
           <StepIndicator />
 
           {/* Chain Info */}
-          {(step === 'token' || step === 'details') && (
+          {(step === 'token' || step === 'details' || step === 'confirm') && (
             <div className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Sending from
@@ -532,42 +523,7 @@ export default function SendModal({
                 </div>
               </div>
 
-              {/* Warning Message */}
-              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <div className="font-medium text-orange-800 dark:text-orange-200 mb-1">
-                      ⚠️ Important Warning
-                    </div>
-                    <div className="text-orange-700 dark:text-orange-300">
-                      Please ensure your receiver can accept {selectedToken.symbol} tokens on {selectedChain?.name}. 
-                      Some exchanges and wallets don&apos;t support some chains and tokens.
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Transaction Fee Info */}
-              {isSmartWallet ? (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                  <div className="text-sm text-green-800 dark:text-green-200">
-                    <strong>✨ Gasless Transaction</strong>
-                    <div className="text-xs mt-1">
-                      This transaction will be sponsored by Alchemy. No ETH needed for gas!
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                  <div className="text-sm text-blue-800 dark:text-blue-200">
-                    <strong>💰 Regular Transaction</strong>
-                    <div className="text-xs mt-1">
-                      You will pay gas fees for this transaction. Make sure you have enough ETH on {selectedChain?.name}.
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
