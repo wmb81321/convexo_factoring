@@ -38,43 +38,23 @@ const SEPOLIA_TOKEN_LIST = [
   }
 ];
 
-// RPC endpoints for Ethereum Sepolia
+// RPC endpoints for Ethereum Sepolia - Using Alchemy for better reliability
 const jsonRpcUrlMap = {
-  11155111: ['https://ethereum-sepolia-rpc.publicnode.com', 'https://ethereum-sepolia.blockpi.network/v1/rpc/public']
+  11155111: [
+    `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
+    'https://ethereum-sepolia-rpc.publicnode.com',
+    'https://ethereum-sepolia.blockpi.network/v1/rpc/public'
+  ]
 };
 
 export default function SimpleSwap() {
   const { user } = usePrivy();
-  const { client } = useSmartWallets();
-  const { smartWalletAddress, wallet } = useSmartWallet();
-  const [provider, setProvider] = useState<any>(null);
+  const { smartWalletAddress } = useSmartWallet();
 
-  // Get the smart wallet provider for Uniswap widget
-  useEffect(() => {
-    const getProvider = async () => {
-      if (client && smartWalletAddress) {
-        try {
-          // Get the provider from the smart wallet client
-          if (client.transport && 'request' in client.transport) {
-            console.log('✅ SwapWidget: Smart wallet provider ready', smartWalletAddress);
-            setProvider(client);
-          } else {
-            console.log('⚠️ SwapWidget: Client available but no transport found');
-          }
-        } catch (error) {
-          console.error('❌ SwapWidget: Error getting provider:', error);
-        }
-      }
-    };
-
-    getProvider();
-  }, [client, smartWalletAddress]);
-
-  // Handle wallet connection for the swap widget
-  const handleConnectWallet = () => {
-    console.log('SwapWidget connect wallet clicked - already connected via smart wallet');
-    // Return false to prevent widget's default connection flow
-    return false;
+  // Handle errors from the swap widget
+  const handleSwapError = (error: Error) => {
+    console.error('SwapWidget error:', error);
+    // You can add user-friendly error handling here
   };
 
   if (!user) {
@@ -119,13 +99,10 @@ export default function SimpleSwap() {
       <CardContent className="p-0">
         <div className="flex justify-center">
           <SwapWidget 
-            provider={provider} // Pass the smart wallet provider
             jsonRpcUrlMap={jsonRpcUrlMap}
             tokenList={SEPOLIA_TOKEN_LIST}
             defaultInputTokenAddress="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
             defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219"
-            onConnectWalletClick={handleConnectWallet} // Handle wallet connection
-            hideConnectionUI={provider ? false : true} // Hide connection UI if no provider
             width={380}
             theme={{
               primary: '#4B66F3',
@@ -137,9 +114,7 @@ export default function SimpleSwap() {
               outline: '#E5E7EB',
               dialog: '#FFFFFF',
             }}
-            onError={(error) => {
-              console.error('SwapWidget error:', error);
-            }}
+            onError={handleSwapError}
           />
         </div>
         <div className="p-4 text-center">
@@ -147,9 +122,14 @@ export default function SimpleSwap() {
             Trade on Ethereum Sepolia • USDC-COPE Liquidity Pool
           </p>
           {smartWalletAddress && (
-            <p className="text-xs text-green-600 mt-1">
-              ✅ Connected: {smartWalletAddress.slice(0, 6)}...{smartWalletAddress.slice(-4)}
-            </p>
+            <div className="text-xs mt-2 space-y-1">
+              <p className="text-green-600">
+                ✅ Smart Wallet Available: {smartWalletAddress.slice(0, 6)}...{smartWalletAddress.slice(-4)}
+              </p>
+              <p className="text-blue-600">
+                ⚡ Connect your wallet in the widget above to start swapping
+              </p>
+            </div>
           )}
           <p className="text-xs text-gray-500 mt-1">
             Pool Address: 
