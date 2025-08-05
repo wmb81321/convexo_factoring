@@ -13,6 +13,7 @@ import { useSponsoredTransactions } from "@/app/hooks/useSponsoredTransactions";
 import ChainSelector from "./chain-selector";
 import ChainLogo from "./chain-logo";
 import TokenIcon from "./token-icon";
+import QRScannerComponent from "./qr-scanner";
 
 interface SendModalProps {
   isOpen: boolean;
@@ -477,15 +478,6 @@ export default function SendModal({
                     </Button>
                   </div>
                   
-                  {showQrScanner && (
-                    <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-center">
-                      <QrCode className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        QR Scanner not implemented yet. Please paste the address manually.
-                      </p>
-                    </div>
-                  )}
-                  
                   {recipientAddress && !isValidAddress && (
                     <div className="flex items-center gap-1 text-red-600 text-sm">
                       <AlertCircle className="h-3 w-3" />
@@ -630,6 +622,13 @@ export default function SendModal({
           </div>
         </CardContent>
       </Card>
+
+      {/* QR Scanner */}
+      <QRScannerComponent
+        isOpen={showQrScanner}
+        onScan={handleQrScan}
+        onClose={() => setShowQrScanner(false)}
+      />
     </div>
   );
 } 
