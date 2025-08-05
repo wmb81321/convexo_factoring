@@ -10,16 +10,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { useEffect, useState } from "react";
 
-// Custom token list for Ethereum Sepolia - NO EXTERNAL DEPENDENCIES
+// Custom token list for Ethereum Sepolia - Valid addresses only
 const SEPOLIA_TOKEN_LIST = [
-  {
-    name: "Ethereum",
-    address: "NATIVE",
-    symbol: "ETH",
-    decimals: 18,
-    chainId: 11155111,
-    logoURI: "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
-  },
   {
     name: "USD Coin",
     address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
@@ -101,7 +93,7 @@ export default function SimpleSwap() {
           <SwapWidget 
             jsonRpcUrlMap={jsonRpcUrlMap}
             tokenList={SEPOLIA_TOKEN_LIST}
-            defaultInputTokenAddress="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+            defaultInputTokenAddress="NATIVE"
             defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219"
             width={380}
             theme={{

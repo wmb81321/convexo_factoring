@@ -17,7 +17,9 @@ import {
   Clock,
   BarChart3,
   Wallet,
-  Zap
+  Zap,
+  Copy,
+  ExternalLink
 } from "lucide-react";
 import { fetchAllChainsBalances, getAggregatedBalanceSummary } from "@/lib/blockchain";
 import { getPoolAnalytics, getUserDeFiPortfolio } from "@/lib/uniswap-subgraph";
@@ -25,6 +27,7 @@ import { fetchMarketData } from "@/lib/pool-data";
 import SimpleSwap from "@/app/components/simple-swap";
 import { useSmartWallet } from "@/app/hooks/useSmartWallet";
 import TokenIcon from "@/app/components/token-icon";
+import { getChainById } from "@/lib/chains";
 
 interface TokenBalance {
   symbol: string;
@@ -263,6 +266,55 @@ export default function DeFi() {
                </div>
              </div>
           </div>
+
+          {/* Smart Wallet Address Display */}
+          {smartWalletAddress && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-5 h-5 text-blue-600" />
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-400">Smart Wallet Address</h4>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
+                  <div className="flex items-center justify-between">
+                    <code className="text-sm font-mono text-gray-800 dark:text-gray-200 break-all">
+                      {smartWalletAddress}
+                    </code>
+                    <div className="flex gap-2 ml-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(smartWalletAddress);
+                          alert('Address copied to clipboard!');
+                        }}
+                        className="h-8 px-2"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const chain = getChainById(11155111); // Sepolia
+                          const explorerUrl = `${chain?.blockExplorer}/address/${smartWalletAddress}`;
+                          window.open(explorerUrl, '_blank');
+                        }}
+                        className="h-8 px-2"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-blue-600 dark:text-blue-400">
+                  ✨ Gasless transactions enabled • Multi-chain support
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between">
