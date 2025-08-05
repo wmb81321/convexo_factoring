@@ -49,6 +49,15 @@ export default function SimpleSwap() {
     // You can add user-friendly error handling here
   };
 
+  // Handle wallet connection - prevent if smart wallet is already connected
+  const handleConnectWallet = () => {
+    if (smartWalletAddress) {
+      alert('You are already connected with your smart wallet. Use the wallet address shown below.');
+      return false; // Prevent default connection
+    }
+    return true; // Allow connection if no smart wallet
+  };
+
   if (!user) {
     return (
       <Card>
@@ -93,8 +102,9 @@ export default function SimpleSwap() {
           <SwapWidget 
             jsonRpcUrlMap={jsonRpcUrlMap}
             tokenList={SEPOLIA_TOKEN_LIST}
-            defaultInputTokenAddress="NATIVE"
-            defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219"
+            defaultInputTokenAddress="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238" // USDC
+            defaultOutputTokenAddress="0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219" // COPE
+            onConnectWalletClick={handleConnectWallet}
             width={380}
             theme={{
               primary: '#4B66F3',
@@ -116,13 +126,16 @@ export default function SimpleSwap() {
           {smartWalletAddress && (
             <div className="text-xs mt-2 space-y-1">
               <p className="text-green-600">
-                ✅ Smart Wallet Available: {smartWalletAddress.slice(0, 6)}...{smartWalletAddress.slice(-4)}
+                ✅ Smart Wallet Connected: {smartWalletAddress.slice(0, 6)}...{smartWalletAddress.slice(-4)}
               </p>
-              <p className="text-blue-600">
-                ⚡ Connect your wallet in the widget above to start swapping
+              <p className="text-orange-600">
+                ⚠️ If widget asks to connect, use your smart wallet address above or external wallet
               </p>
             </div>
           )}
+          <div className="text-xs text-gray-500 mt-2">
+            💱 Swapping between USDC and COPE on the Sepolia testnet
+          </div>
           <p className="text-xs text-gray-500 mt-1">
             Pool Address: 
             <a 

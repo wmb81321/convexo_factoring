@@ -236,7 +236,7 @@ export default function DeFi() {
                 <div>
                   <div className="font-semibold">{formatNumber(aggregatedSummary.totalEth, 6)} ETH</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {ethPrice ? formatCurrency(aggregatedSummary.totalEth * ethPrice) : 'Loading...'}
+                    {ethPrice ? formatCurrency(aggregatedSummary.totalEth * ethPrice) : formatCurrency(aggregatedSummary.totalEth * 3200)}
                   </div>
                 </div>
               </div>
@@ -327,11 +327,18 @@ export default function DeFi() {
               <div className="text-right">
                 <div className="text-xl font-bold">
                    {(() => {
-                     const ethValue = ethPrice ? aggregatedSummary.totalEth * ethPrice : 0;
+                     // Use real ETH price if available, otherwise fallback to $3200 estimate
+                     const ethPriceToUse = ethPrice || 3200;
+                     const ethValue = aggregatedSummary.totalEth * ethPriceToUse;
                      const usdcValue = aggregatedSummary.totalUsdc;
                      const copeValue = poolAnalytics?.token1Price ? aggregatedSummary.totalCope * poolAnalytics.token1Price : 0;
-                     return ethPrice ? formatCurrency(ethValue + usdcValue + copeValue) : 'Loading...';
+                     return formatCurrency(ethValue + usdcValue + copeValue);
                    })()}
+                   {!ethPrice && (
+                     <div className="text-xs text-gray-500 font-normal mt-1">
+                       *ETH estimated at $3,200 (Sepolia testnet)
+                     </div>
+                   )}
                  </div>
               </div>
             </div>
