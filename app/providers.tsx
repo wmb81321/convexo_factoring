@@ -24,6 +24,7 @@ export const Providers = (props: PropsWithChildren) => {
     <PrivyProvider
       appId={privyAppId}
       config={{
+        
         // Login methods - social logins create embedded wallets automatically
         loginMethods: ['google', 'apple', 'telegram'],
         

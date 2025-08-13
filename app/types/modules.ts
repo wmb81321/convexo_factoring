@@ -1,4 +1,4 @@
-export type ModuleType = 'home' | 'profile' | 'transfers' | 'defi';
+export type ModuleType = 'home' | 'profile' | 'transfers' | 'defi' | 'funding';
 
 export interface UserProfile {
   id: string;
