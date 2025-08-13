@@ -5,7 +5,6 @@ import { usePrivy } from "@privy-io/react-auth";
 import Header from "./components/header";
 import LoginCard from "./components/login-card";
 import Navigation from "./components/navigation";
-import PreLogin from "./pre-login";
 import ProfileModule from "./modules/profile";
 import TransfersModule from "./modules/transfers";
 import DeFiModule from "./modules/defi";
@@ -64,7 +63,19 @@ export default function Home() {
         <div className="container-institutional section-padding">
           <div className="max-w-7xl mx-auto">
             {!authenticated ? (
-              <PreLogin />
+              <div className="flex justify-center items-center min-h-[60vh]">
+                <div className="w-full max-w-md fade-in">
+                  <div className="text-center mb-8">
+                    <h1 className="text-4xl font-bold heading-institutional mb-4">
+                      Welcome to Convexo
+                    </h1>
+                    <p className="text-lg text-institutional-light">
+                      Next-generation smart wallet with gasless transactions
+                    </p>
+                  </div>
+                  <LoginCard />
+                </div>
+              </div>
             ) : (
               /* Authenticated Dashboard with Modular Layout */
               <div className="slide-up space-y-8">
