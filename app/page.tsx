@@ -13,7 +13,7 @@ import { ModuleType } from "./types/modules";
 
 export default function Home() {
   const { authenticated, ready } = usePrivy();
-  const [activeModule, setActiveModule] = useState<ModuleType>('home');
+  const [activeModule, setActiveModule] = useState<ModuleType>('transfers');
 
   // Professional loading state
   if (!ready) {
@@ -37,12 +37,10 @@ export default function Home() {
 
   const renderActiveModule = () => {
     switch (activeModule) {
-      case 'home':
+      case 'transfers':
         return <TransfersModule />;
       case 'profile':
         return <ProfileModule />;
-      case 'transfers':
-        return <TransfersModule />;
       case 'funding':
         return <FundingModule />;
       case 'defi':

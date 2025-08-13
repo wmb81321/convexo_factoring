@@ -1,21 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { Home, User, ArrowLeftRight, TrendingUp, Menu, X, Wallet } from "lucide-react";
+import { Home, User, ArrowLeftRight, TrendingUp, Menu, X, Wallet, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModuleType } from "@/app/types/modules";
+
+interface NavigationItem {
+  id: ModuleType;
+  label: string;
+  icon: LucideIcon;
+  description: string;
+  color: string;
+  bgColor: string;
+}
 
 interface NavigationProps {
   activeModule: ModuleType;
   onModuleChange: (module: ModuleType) => void;
 }
 
-const navigationItems = [
+const navigationItems: NavigationItem[] = [
   {
-    id: 'home' as ModuleType,
+    id: 'transfers' as ModuleType,
     label: 'Home',
     icon: Home,
-    description: 'Dashboard & Overview',
+    description: 'Send & Receive',
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
   },
@@ -23,17 +32,9 @@ const navigationItems = [
     id: 'profile' as ModuleType,
     label: 'Profile',
     icon: User,
-    description: 'Account Settings',
+    description: 'Account & Bank Info',
     color: 'text-purple-600',
     bgColor: 'bg-purple-50 dark:bg-purple-900/20',
-  },
-  {
-    id: 'transfers' as ModuleType,
-    label: 'Transfers',
-    icon: ArrowLeftRight,
-    description: 'Send & Receive',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
   },
   {
     id: 'funding' as ModuleType,
