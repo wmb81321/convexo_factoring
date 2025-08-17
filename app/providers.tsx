@@ -14,9 +14,11 @@ const store = configureStore({
 
 export const Providers = (props: PropsWithChildren) => {
   const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-  
-  // Don't render PrivyProvider during build if no app ID
+  const alchemyApiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+  const alchemyPolicyId = process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID;
+
   if (!privyAppId) {
+    console.error('Missing NEXT_PUBLIC_PRIVY_APP_ID environment variable');
     return <>{props.children}</>;
   }
 
@@ -24,7 +26,6 @@ export const Providers = (props: PropsWithChildren) => {
     <PrivyProvider
       appId={privyAppId}
       config={{
-        
         // Login methods - social logins create embedded wallets automatically
         loginMethods: ['google', 'apple', 'telegram'],
         
@@ -38,13 +39,12 @@ export const Providers = (props: PropsWithChildren) => {
         
         // CREATE embedded wallets (needed for smart wallets)
         embeddedWallets: {
-          createOnLogin: 'all-users', // Create for all users
+          createOnLogin: 'all-users',
           requireUserPasswordOnCreate: false,
-          showWalletUIs: false, // Hide UI since we use smart wallet interface
-        },  
+          showWalletUIs: false,
+        },
 
-
-        // Supported chains configuration with Alchemy RPC URLs for gas sponsorship
+        // Supported chains configuration
         supportedChains: [
           {
             id: 11155111, // Ethereum Sepolia
@@ -80,7 +80,7 @@ export const Providers = (props: PropsWithChildren) => {
           },
         ],
         
-        // Set default chain to Ethereum Sepolia (matches your dashboard setup)
+        // Set default chain to Ethereum Sepolia
         defaultChain: {
           id: 11155111,
           name: 'Ethereum Sepolia',
@@ -89,38 +89,26 @@ export const Providers = (props: PropsWithChildren) => {
           rpcUrls: { default: { http: ['https://eth-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'] } },
           blockExplorers: { default: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' } },
         },
-        
-        // External wallet support - will be auto-detected by Privy
       }}
     >
       <SmartWalletsProvider
         config={{
-          // Multi-chain Alchemy Gas Manager configuration
-          paymasterContext: (chainId: number) => {
-            const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-            const policyId = process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID;
-            
-            // Return appropriate RPC URL based on chain ID
+          paymasterContext: alchemyApiKey && alchemyPolicyId ? (chainId: number) => {
             const getRpcUrl = (id: number): string => {
               switch (id) {
-                case 11155111: // Ethereum Sepolia
-                  return `https://eth-sepolia.g.alchemy.com/v2/${apiKey}`;
-                case 11155420: // OP Sepolia
-                  return `https://opt-sepolia.g.alchemy.com/v2/${apiKey}`;
-                case 84532: // Base Sepolia
-                  return `https://base-sepolia.g.alchemy.com/v2/${apiKey}`;
-                case 1301: // Unichain Sepolia
-                  return `https://unichain-sepolia.g.alchemy.com/v2/${apiKey}`;
-                default:
-                  return `https://eth-sepolia.g.alchemy.com/v2/${apiKey}`; // Fallback
+                case 11155111: return `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`;
+                case 11155420: return `https://opt-sepolia.g.alchemy.com/v2/${alchemyApiKey}`;
+                case 84532: return `https://base-sepolia.g.alchemy.com/v2/${alchemyApiKey}`;
+                case 1301: return `https://unichain-sepolia.g.alchemy.com/v2/${alchemyApiKey}`;
+                default: return `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`;
               }
             };
 
             return {
-              policyId,
+              policyId: alchemyPolicyId,
               rpcUrl: getRpcUrl(chainId),
             };
-          },
+          } : undefined,
         }}
       >
         <Provider store={store}>

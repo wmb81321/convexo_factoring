@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 import TokenIcon from "./token-icon";
 
+
 export default function PrivySmartWallet() {
 
 
@@ -106,6 +107,8 @@ export default function PrivySmartWallet() {
           </div>
         </CardContent>
       </Card>
+
+
     </div>
   );
 } 
