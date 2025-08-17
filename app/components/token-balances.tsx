@@ -142,9 +142,9 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
 
         <CardContent className="space-y-6">
           {/* Summary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                              <TokenIcon symbol="ETH" size={40} />
+              <TokenIcon symbol="ETH" size={40} />
               <div className="font-semibold">{formatNumber(aggregatedSummary.totalEth, 6)} ETH</div>
               <div className="text-sm text-gray-500">Total across all chains</div>
             </div>
@@ -154,8 +154,13 @@ export default function TokenBalances({ walletAddress }: TokenBalancesProps) {
               <div className="text-sm text-gray-500">Total across all chains</div>
             </div>
             <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-              <TokenIcon symbol="COPE" size={40} />
-              <div className="font-semibold">{formatNumber(aggregatedSummary.totalCope, 2)} COPE</div>
+              <TokenIcon symbol="COPe" size={40} />
+              <div className="font-semibold">{formatNumber(aggregatedSummary.totalCope, 2)} COPe</div>
+              <div className="text-sm text-gray-500">Total across all chains</div>
+            </div>
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+              <TokenIcon symbol="EURC" size={40} />
+              <div className="font-semibold">{formatNumber(aggregatedSummary.totalEurc, 2)} EURC</div>
               <div className="text-sm text-gray-500">Total across all chains</div>
             </div>
           </div>

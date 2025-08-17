@@ -16,7 +16,10 @@ export default function TokenIcon({ symbol, size = 24, className = "" }: TokenIc
       case "USDC":
         return "/tokens/usdc_token.png";
       case "COPE":
+      case "COPe":
         return "/tokens/ecop.png";
+      case "EURC":
+        return "/tokens/usdc_token.png"; // Using USDC as placeholder for EURC
       default:
         return "/tokens/ether_crypto.png"; // Default fallback
     }
@@ -29,7 +32,10 @@ export default function TokenIcon({ symbol, size = 24, className = "" }: TokenIc
       case "USDC":
         return "USD Coin";
       case "COPE":
+      case "COPe":
         return "Electronic Colombian Peso";
+      case "EURC":
+        return "Euro Coin";
       default:
         return "Token";
     }

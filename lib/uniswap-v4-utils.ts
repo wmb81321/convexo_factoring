@@ -17,9 +17,9 @@ export const TOKENS = {
     symbol: "USDC"
   },
   COPE: {
-    address: "0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219" as `0x${string}`,
-    decimals: 6,
-    symbol: "COPE"
+    address: "0x19ac2612e560b2bbedf88660a2566ef53c0a15a1" as `0x${string}`,
+    decimals: 18,
+    symbol: "COPe"
   }
 };
 

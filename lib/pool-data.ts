@@ -320,7 +320,7 @@ export async function fetchAllPoolsData(walletAddress?: string): Promise<{
           address: USDC_ADDRESS,
         },
         token1: {
-          symbol: 'COPE',
+          symbol: 'COPe',
           name: 'Electronic Colombian Peso',
           address: ECOP_ADDRESS,
         }

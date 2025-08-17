@@ -25,7 +25,7 @@ import { parseUnits } from "viem";
 const ACTUAL_V3_POOL = {
   address: "0x20f2b3F96f416Fd36ED902Af3E7bBb02430657d3" as `0x${string}`,
   token0: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", // USDC
-  token1: "0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219", // COPE
+  token1: "0x19ac2612e560b2bbedf88660a2566ef53c0a15a1", // COPe
   fee: 3000, // 0.3%
   explorerUrl: "https://app.uniswap.org/explore/pools/ethereum_sepolia/0x20f2b3F96f416Fd36ED902Af3E7bBb02430657d3"
 };

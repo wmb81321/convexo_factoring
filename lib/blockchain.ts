@@ -161,6 +161,10 @@ export async function fetchTokenBalance(
     let usdValue: string | undefined;
     if (tokenContract.symbol === 'USDC') {
       usdValue = `$${formattedBalance}`; // USDC is pegged to $1
+    } else if (tokenContract.symbol === 'EURC') {
+      // EURC is pegged to €1, approximate USD conversion
+      const eurToUsd = 1.08; // Approximate EUR to USD rate
+      usdValue = `$${(parseFloat(formattedBalance) * eurToUsd).toFixed(2)}`;
     }
 
     return {
@@ -221,6 +225,10 @@ export async function fetchAllBalances(
     
     if (chain.tokens.ecop) {
       tokenPromises.push(fetchTokenBalance(walletAddress, chain.tokens.ecop, chainId));
+    }
+    
+    if (chain.tokens.eurc) {
+      tokenPromises.push(fetchTokenBalance(walletAddress, chain.tokens.eurc, chainId));
     }
 
     // Wait for all token balances
@@ -287,17 +295,19 @@ export function getAggregatedBalanceSummary(allChainsBalances: { [chainId: numbe
   totalEth: number;
   totalUsdc: number;
   totalCope: number;
-  chainBreakdown: { [chainId: number]: { eth: number; usdc: number; cope: number; } };
+  totalEurc: number;
+  chainBreakdown: { [chainId: number]: { eth: number; usdc: number; cope: number; eurc: number; } };
 } {
   const summary = {
     totalEth: 0,
     totalUsdc: 0,
     totalCope: 0,
-    chainBreakdown: {} as { [chainId: number]: { eth: number; usdc: number; cope: number; } }
+    totalEurc: 0,
+    chainBreakdown: {} as { [chainId: number]: { eth: number; usdc: number; cope: number; eurc: number; } }
   };
   
   Object.entries(allChainsBalances).forEach(([chainId, balances]) => {
-    const chainSummary = { eth: 0, usdc: 0, cope: 0 };
+    const chainSummary = { eth: 0, usdc: 0, cope: 0, eurc: 0 };
     
     balances.forEach(balance => {
       const amount = parseFloat(balance.balance);
@@ -307,9 +317,12 @@ export function getAggregatedBalanceSummary(allChainsBalances: { [chainId: numbe
       } else if (balance.symbol === 'USDC') {
         chainSummary.usdc += amount;
         summary.totalUsdc += amount;
-      } else if (balance.symbol === 'COPE') {
+      } else if (balance.symbol === 'COPe') {
         chainSummary.cope += amount;
         summary.totalCope += amount;
+      } else if (balance.symbol === 'EURC') {
+        chainSummary.eurc += amount;
+        summary.totalEurc += amount;
       }
     });
     

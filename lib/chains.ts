@@ -20,7 +20,8 @@ export interface ChainConfig {
   pimlicoBundlerUrl: string;
   tokens: {
     usdc?: TokenContract;
-    ecop?: TokenContract; // Electronic Colombian Peso (COPE)
+    ecop?: TokenContract; // Electronic Colombian Peso (COPe)
+    eurc?: TokenContract; // Euro Coin (EURC)
   };
   isDefault?: boolean;
 }
@@ -47,12 +48,17 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         decimals: 6,
       },
       ecop: {
-        address: "0xA4A4fCb23ffcd964346D2e4eCDf5A8c15C69B219", // Electronic Colombian Peso (COPE)
-        symbol: "COPE",
+        address: "0x19ac2612e560b2bbedf88660a2566ef53c0a15a1", // Electronic Colombian Peso (COPe)
+        symbol: "COPe",
         name: "Electronic Colombian Peso",
+        decimals: 18,
+      },
+      eurc: {
+        address: "0x08210F9170F89Ab7658F0B5E3fF39b0E03C594D4", // Euro Coin (EURC)
+        symbol: "EURC",
+        name: "Euro Coin",
         decimals: 6,
       },
-
     },
     isDefault: true,
   },
@@ -72,12 +78,17 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
     pimlicoBundlerUrl: "https://public.pimlico.io/v2/1301/rpc",
     tokens: {
       usdc: {
-        address: "0x078D782b760474a361dDA0AF3839290b0EF57AD6",
+        address: "0x31d0220469e10c4E71834a79b1f276d740d3768F",
         symbol: "USDC",
         name: "USD Coin",
         decimals: 6,
       },
-      // ECOP not deployed on Unichain yet
+      ecop: {
+        address: "0xbb0d7c4141ee1fed53db766e1ffcb9c618df8260", // Electronic Colombian Peso (COPe)
+        symbol: "COPe",
+        name: "Electronic Colombian Peso",
+        decimals: 18,
+      },
     },
   },
   
@@ -101,7 +112,12 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         name: "USD Coin",
         decimals: 6,
       },
-      // ECOP not deployed on Optimism yet
+      ecop: {
+        address: "0xa5bfe574ac515c14f37c25a92202fa5a58d8e723", // Electronic Colombian Peso (COPe)
+        symbol: "COPe",
+        name: "Electronic Colombian Peso",
+        decimals: 18,
+      },
     },
   },
   
@@ -126,9 +142,15 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
         decimals: 6,
       },
       ecop: {
-        address: "0x34fa1aed9f275451747f3e9b5377608ccf96a458", // Electronic Colombian Peso (COPE) - Base deployment
-        symbol: "COPE",
+        address: "0xb934dcb57fb0673b7bc0fca590c5508f1cde955d", // Electronic Colombian Peso (COPe)
+        symbol: "COPe",
         name: "Electronic Colombian Peso",
+        decimals: 18,
+      },
+      eurc: {
+        address: "0x808456652fdb597867f38412077A9182bf77359F", // Euro Coin (EURC)
+        symbol: "EURC",
+        name: "Euro Coin",
         decimals: 6,
       },
     },
@@ -152,7 +174,7 @@ export function getChainTokens(chainId: number): TokenContract[] {
   const tokens: TokenContract[] = [];
   if (chain.tokens.usdc) tokens.push(chain.tokens.usdc);
   if (chain.tokens.ecop) tokens.push(chain.tokens.ecop);
-
+  if (chain.tokens.eurc) tokens.push(chain.tokens.eurc);
   
   return tokens;
 } 
