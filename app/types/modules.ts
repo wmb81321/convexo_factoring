@@ -1,4 +1,4 @@
-export type ModuleType = 'home' | 'profile' | 'transfers' | 'defi' | 'funding';
+export type ModuleType = 'home' | 'profile' | 'transfers' | 'defi' | 'funding' | 'clients';
 
 export interface UserProfile {
   id: string;
@@ -51,4 +51,52 @@ export interface SwapQuote {
   minimumAmountOut: string;
   route: string[];
   gasEstimate: string;
+}
+
+export interface ClientSupplier {
+  id: string;
+  name: string;
+  taxId: string;
+  country: string;
+  billingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
+  bankAccount: {
+    accountName: string;
+    accountNumber: string;
+    bankName: string;
+    routingNumber?: string;
+    swift?: string;
+  };
+  walletAddress?: string;
+  type: 'client' | 'supplier';
+  status: 'active' | 'inactive';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Invoice {
+  id: string;
+  clientSupplierId: string;
+  invoiceNumber: string;
+  amount: number;
+  currency: string;
+  description: string;
+  dueDate: Date;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  createdAt: Date;
+  updatedAt: Date;
+  items: InvoiceItem[];
+}
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
 } 

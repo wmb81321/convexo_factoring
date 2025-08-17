@@ -9,6 +9,7 @@ import ProfileModule from "./modules/profile";
 import TransfersModule from "./modules/transfers";
 import DeFiModule from "./modules/defi";
 import FundingModule from "./modules/funding";
+import ClientsModule from "./modules/clients";
 import { ModuleType } from "./types/modules";
 
 export default function Home() {
@@ -41,6 +42,8 @@ export default function Home() {
         return <TransfersModule />;
       case 'profile':
         return <ProfileModule />;
+      case 'clients':
+        return <ClientsModule />;
       case 'funding':
         return <FundingModule />;
       case 'defi':

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Home, User, ArrowLeftRight, TrendingUp, Menu, X, Wallet, LucideIcon } from "lucide-react";
+import { Home, User, ArrowLeftRight, TrendingUp, Menu, X, Wallet, Users, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModuleType } from "@/app/types/modules";
 
@@ -37,6 +37,14 @@ const navigationItems: NavigationItem[] = [
     bgColor: 'bg-purple-50 dark:bg-purple-900/20',
   },
   {
+    id: 'clients' as ModuleType,
+    label: 'Clients & Suppliers',
+    icon: Users,
+    description: 'CRM & Billing',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50 dark:bg-green-900/20',
+  },
+  {
     id: 'funding' as ModuleType,
     label: 'Funding',
     icon: Wallet,
@@ -46,9 +54,9 @@ const navigationItems: NavigationItem[] = [
   },
   {
     id: 'defi' as ModuleType,
-    label: 'DeFi',
+    label: 'SER',
     icon: TrendingUp,
-    description: 'USDC-COPE LP',
+    description: 'Smart Exchange',
     color: 'text-orange-600',
     bgColor: 'bg-orange-50 dark:bg-orange-900/20',
   },
