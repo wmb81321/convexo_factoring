@@ -37,7 +37,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
       symbol: "ETH",
       decimals: 18,
     },
-    rpcUrl: "https://ethereum-sepolia-rpc.publicnode.com",
+    rpcUrl: "https://eth-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0",
     blockExplorer: "https://sepolia.etherscan.io",
     pimlicoBundlerUrl: "https://public.pimlico.io/v2/11155111/rpc",
     tokens: {
@@ -73,7 +73,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
       symbol: "ETH",
       decimals: 18,
     },
-    rpcUrl: "https://sepolia.unichain.org",
+    rpcUrl: "https://unichain-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0",
     blockExplorer: "https://unichain-sepolia.blockscout.com",
     pimlicoBundlerUrl: "https://public.pimlico.io/v2/1301/rpc",
     tokens: {
@@ -102,7 +102,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
       symbol: "ETH",
       decimals: 18,
     },
-    rpcUrl: "https://sepolia.optimism.io",
+    rpcUrl: "https://opt-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0",
     blockExplorer: "https://sepolia-optimism.etherscan.io",
     pimlicoBundlerUrl: "https://public.pimlico.io/v2/11155420/rpc",
     tokens: {
@@ -131,7 +131,7 @@ export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
       symbol: "ETH",
       decimals: 18,
     },
-    rpcUrl: "https://sepolia.base.org",
+    rpcUrl: "https://base-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0",
     blockExplorer: "https://sepolia.basescan.org",
     pimlicoBundlerUrl: "https://public.pimlico.io/v2/84532/rpc",
     tokens: {

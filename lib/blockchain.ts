@@ -17,17 +17,17 @@ const getPublicClient = (chainId: number) => {
       case 11155111: // Ethereum Sepolia
         return createPublicClient({
           chain: sepolia,
-          transport: http('https://ethereum-sepolia-rpc.publicnode.com'),
+          transport: http('https://eth-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'),
         });
       case 11155420: // Optimism Sepolia  
         return createPublicClient({
           chain: optimismSepolia,
-          transport: http('https://sepolia.optimism.io'),
+          transport: http('https://opt-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'),
         });
       case 84532: // Base Sepolia
         return createPublicClient({
           chain: baseSepolia,
-          transport: http('https://sepolia.base.org'),
+          transport: http('https://base-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'),
         });
       case 1301: // Unichain Sepolia
         return createPublicClient({
@@ -42,10 +42,10 @@ const getPublicClient = (chainId: number) => {
             },
             rpcUrls: {
               default: {
-                http: ['https://sepolia.unichain.org'],
+                http: ['https://unichain-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'],
               },
               public: {
-                http: ['https://sepolia.unichain.org'],
+                http: ['https://unichain-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'],
               },
             },
             blockExplorers: {
@@ -56,7 +56,7 @@ const getPublicClient = (chainId: number) => {
             },
             testnet: true,
           },
-          transport: http('https://sepolia.unichain.org'),
+          transport: http('https://unichain-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'),
         });
       default:
         throw new Error(`Unsupported chain ID: ${chainId}`);

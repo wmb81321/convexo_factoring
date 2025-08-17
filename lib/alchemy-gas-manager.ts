@@ -187,6 +187,8 @@ export class AlchemyGasManager {
         return `${baseUrl}polygon-mainnet.g.alchemy.com/v2/${this.apiKey}`;
       case 80002: // Polygon Amoy
         return `${baseUrl}polygon-amoy.g.alchemy.com/v2/${this.apiKey}`;
+      case 1301: // Unichain Sepolia
+        return `${baseUrl}unichain-sepolia.g.alchemy.com/v2/${this.apiKey}`;
       default:
         throw new Error(`Unsupported chain ID: ${chainId}`);
     }

@@ -44,14 +44,14 @@ export const Providers = (props: PropsWithChildren) => {
         },  
 
 
-        // Supported chains configuration (must match dashboard setup)
+        // Supported chains configuration with Alchemy RPC URLs for gas sponsorship
         supportedChains: [
           {
             id: 11155111, // Ethereum Sepolia
             name: 'Ethereum Sepolia',
             network: 'sepolia',
             nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-            rpcUrls: { default: { http: ['https://ethereum-sepolia-rpc.publicnode.com'] } },
+            rpcUrls: { default: { http: ['https://eth-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'] } },
             blockExplorers: { default: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' } },
           },
           {
@@ -59,7 +59,7 @@ export const Providers = (props: PropsWithChildren) => {
             name: 'OP Sepolia',
             network: 'optimism-sepolia',
             nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-            rpcUrls: { default: { http: ['https://sepolia.optimism.io'] } },
+            rpcUrls: { default: { http: ['https://opt-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'] } },
             blockExplorers: { default: { name: 'Optimism Sepolia Explorer', url: 'https://sepolia-optimism.etherscan.io' } },
           },
           {
@@ -67,7 +67,7 @@ export const Providers = (props: PropsWithChildren) => {
             name: 'Base Sepolia',
             network: 'base-sepolia', 
             nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-            rpcUrls: { default: { http: ['https://sepolia.base.org'] } },
+            rpcUrls: { default: { http: ['https://base-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'] } },
             blockExplorers: { default: { name: 'Base Sepolia Explorer', url: 'https://sepolia.basescan.org' } },
           },
           {
@@ -75,7 +75,7 @@ export const Providers = (props: PropsWithChildren) => {
             name: 'Unichain Sepolia',
             network: 'unichain-sepolia',
             nativeCurrency: { name: 'Unichain Ether', symbol: 'ETH', decimals: 18 },
-            rpcUrls: { default: { http: ['https://sepolia.unichain.org'] } },
+            rpcUrls: { default: { http: ['https://unichain-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'] } },
             blockExplorers: { default: { name: 'Unichain Sepolia Explorer', url: 'https://unichain-sepolia.blockscout.com' } },
           },
         ],
@@ -86,7 +86,7 @@ export const Providers = (props: PropsWithChildren) => {
           name: 'Ethereum Sepolia',
           network: 'sepolia',
           nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-          rpcUrls: { default: { http: ['https://ethereum-sepolia-rpc.publicnode.com'] } },
+          rpcUrls: { default: { http: ['https://eth-sepolia.g.alchemy.com/v2/wkftoNwmx1w1I2Zo3Kljuv0T28pCBQy0'] } },
           blockExplorers: { default: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' } },
         },
         
@@ -95,10 +95,31 @@ export const Providers = (props: PropsWithChildren) => {
     >
       <SmartWalletsProvider
         config={{
-          // Alchemy Gas Manager configuration for proper sponsorship
-          paymasterContext: {
-            policyId: process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID,
-            rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
+          // Multi-chain Alchemy Gas Manager configuration
+          paymasterContext: (chainId: number) => {
+            const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+            const policyId = process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID;
+            
+            // Return appropriate RPC URL based on chain ID
+            const getRpcUrl = (id: number): string => {
+              switch (id) {
+                case 11155111: // Ethereum Sepolia
+                  return `https://eth-sepolia.g.alchemy.com/v2/${apiKey}`;
+                case 11155420: // OP Sepolia
+                  return `https://opt-sepolia.g.alchemy.com/v2/${apiKey}`;
+                case 84532: // Base Sepolia
+                  return `https://base-sepolia.g.alchemy.com/v2/${apiKey}`;
+                case 1301: // Unichain Sepolia
+                  return `https://unichain-sepolia.g.alchemy.com/v2/${apiKey}`;
+                default:
+                  return `https://eth-sepolia.g.alchemy.com/v2/${apiKey}`; // Fallback
+              }
+            };
+
+            return {
+              policyId,
+              rpcUrl: getRpcUrl(chainId),
+            };
           },
         }}
       >

@@ -66,7 +66,7 @@ NEXT_PUBLIC_ALCHEMY_APP_ID=your_alchemy_app_id_here
    {
      "policyName": "Convexo Gas Sponsorship",
      "policyType": "sponsorship",
-     "networks": ["ETH_SEPOLIA", "OP_SEPOLIA", "BASE_SEPOLIA"],
+     "networks": ["ETH_SEPOLIA", "OP_SEPOLIA", "BASE_SEPOLIA", "UNICHAIN_SEPOLIA"],
      "rules": {
        "maxSpendUsd": "1000.00",
        "maxSpendPerSenderUsd": "50.00", 
@@ -89,7 +89,7 @@ const policy = await gasManager.createPolicy({
   policyName: "Convexo Gas Sponsorship",
   policyType: "sponsorship", 
   appId: process.env.NEXT_PUBLIC_ALCHEMY_APP_ID!,
-  networks: ["ETH_SEPOLIA", "OP_SEPOLIA", "BASE_SEPOLIA"],
+  networks: ["ETH_SEPOLIA", "OP_SEPOLIA", "BASE_SEPOLIA", "UNICHAIN_SEPOLIA"],
   rules: {
     maxSpendUsd: "1000.00",
     maxSpendPerSenderUsd: "50.00",
