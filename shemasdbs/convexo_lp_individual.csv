@@ -1,0 +1,48 @@
+actor,category,field_key,label,type,required,description,example,options,upload
+LIQUIDITY_PROVIDER,Profile,entity_type,Entity Type,enum,True,Type of participant,Organization,Individual|Organization|DAO,False
+LIQUIDITY_PROVIDER,Profile,legal_name,Legal Name,string,False,Legal name of organization,Convexo Capital LP,,False
+LIQUIDITY_PROVIDER,Profile,trade_name,Trade Name / DBA,string,False,Commercial name,Convexo Capital,,False
+LIQUIDITY_PROVIDER,Profile,legal_form,Legal Form,enum,False,Entity type if org,LLC,SAS|LLC|C-Corp|S-Corp|GmbH|Ltd|PLC|Partnership|Foundation|Trust,False
+LIQUIDITY_PROVIDER,Profile,registration_number,Registration Number,string,False,Company registry ID,LP-998877,,False
+LIQUIDITY_PROVIDER,Profile,tax_id,Tax ID / EIN / VAT,string,False,Org tax identifier,EIN 98-7654321,,False
+LIQUIDITY_PROVIDER,Profile,lei,Legal Entity Identifier (LEI),string,False,ISO 17442 LEI code,5493001KJTIIGC8Y1R12,,False
+LIQUIDITY_PROVIDER,Profile,country,Country,enum,True,Residence/jurisdiction,US,US|CO|MX|BR|CL|GB|SG|HK|DE|FR|ES,False
+LIQUIDITY_PROVIDER,Profile,state_province,State / Province,string,False,Region/state of registration,NY,,False
+LIQUIDITY_PROVIDER,Profile,city,City,string,False,City,New York,,False
+LIQUIDITY_PROVIDER,Profile,address_line1,Address Line 1,string,False,Street + number,123 Wall Street,,False
+LIQUIDITY_PROVIDER,Profile,address_line2,Address Line 2,string,False,Suite/floor,Suite 10,,False
+LIQUIDITY_PROVIDER,Profile,postal_code,Postal Code / ZIP,string,False,ZIP or postal code,10005,,False
+LIQUIDITY_PROVIDER,Profile,website,Website,url,False,Official website (https),https://convexo.capital,,False
+LIQUIDITY_PROVIDER,Contacts,primary_email,Primary Email,email,True,Operations/settlement contact,lp@convexo.capital,,False
+LIQUIDITY_PROVIDER,Contacts,primary_phone,Primary Phone,phone,False,E.164,+12125550123,,False
+LIQUIDITY_PROVIDER,Representative,rep_full_name,Authorized Signer Full Name,string,True,Individual responsible for account,Alex Johnson,,False
+LIQUIDITY_PROVIDER,Representative,rep_role,Role / Title,string,False,Position in org,CFO,,False
+LIQUIDITY_PROVIDER,Representative,rep_id_type,ID Type,enum,True,Type of ID,Passport,Passport|DNI|CC|Other,False
+LIQUIDITY_PROVIDER,Representative,rep_id_number,ID Number,string,True,Government-issued ID,XK1234567,,False
+LIQUIDITY_PROVIDER,Representative,rep_dob,Date of Birth,date,False,YYYY-MM-DD,1982-07-14,,False
+LIQUIDITY_PROVIDER,Representative,rep_nationality,Nationality,enum,False,ISO 3166-1 alpha-2,US,US|CO|MX|BR|CL|GB|SG|HK|DE|FR|ES,False
+LIQUIDITY_PROVIDER,Representative,rep_email,Email,email,False,Direct email,alex@convexo.capital,,False
+LIQUIDITY_PROVIDER,Representative,rep_phone,Phone,phone,False,E.164,+12125556789,,False
+LIQUIDITY_PROVIDER,Representative,is_pep,PEP Status,boolean,True,Politically Exposed Person,false,,False
+LIQUIDITY_PROVIDER,Representative,source_of_funds,Source of Funds,enum,True,Primary origin of funds,Operating Cashflow,Operating Cashflow|Investment Returns|Fundraising|Other,False
+LIQUIDITY_PROVIDER,Tax,tax_form_type,Tax Form Type,enum,False,Select applicable,W-8BEN-E,W-8BEN-E|W-9|Other,False
+LIQUIDITY_PROVIDER,Tax,tax_form_upload,Tax Form Upload,file,False,Upload signed tax form,,,True
+LIQUIDITY_PROVIDER,Preferences,stablecoin,Stablecoin,enum,True,Preferred asset to deploy,USDC,USDC|EURC|USDT,False
+LIQUIDITY_PROVIDER,Preferences,chains,Allowed Chains,array,True,Networks LP is willing to use,"[""Base"",""Optimism""]",Ethereum|Base|Optimism|Arbitrum|Polygon|Unichain,False
+LIQUIDITY_PROVIDER,Preferences,ticket_min,Min Ticket Size (USD),number,True,Minimum per deal,10000.00,,False
+LIQUIDITY_PROVIDER,Preferences,ticket_max,Max Ticket Size (USD),number,True,Maximum per deal,250000.00,,False
+LIQUIDITY_PROVIDER,Preferences,target_apy,Target APY (%),number,True,Desired annualized return,18.0,,False
+LIQUIDITY_PROVIDER,Preferences,advance_pct_max,Max Advance % (bps),integer,True,Upper bound advance offered,9000,,False
+LIQUIDITY_PROVIDER,Preferences,discount_bps_min,Min Discount Rate (monthly bps),integer,True,Floor monthly rate,150,,False
+LIQUIDITY_PROVIDER,Preferences,max_exposure_per_sme,Max Exposure per SME (USD),number,True,Concentration limit,100000.00,,False
+LIQUIDITY_PROVIDER,Preferences,excluded_industries,Excluded Industries,array,False,Industries not allowed,"[""Gambling"",""Weapons""]",,False
+LIQUIDITY_PROVIDER,Wallet,evm_address,Funding Wallet Address (0x…),address_eth,True,Wallet to fund vaults,0x3333333333333333333333333333333333333333,,False
+LIQUIDITY_PROVIDER,Wallet,wallet_type,Wallet Type,enum,True,Embedded (Privy) or External,external,embedded|external,False
+LIQUIDITY_PROVIDER,Documents,kyb_docs,KYB Documents (org) or ID (individual),file,True,Company docs or passport/ID,,,True
+LIQUIDITY_PROVIDER,Documents,aml_policy,AML Policy (if organization),file,False,PDF of AML program,,,True
+LIQUIDITY_PROVIDER,Documents,proof_of_address,Proof of Address (<=3 months),file,True,Utility bill/bank statement,,,True
+LIQUIDITY_PROVIDER,Documents,so_funds_evidence,Source of Funds Evidence,file,False,"Bank letter, statements, auditor letter",,,True
+LIQUIDITY_PROVIDER,Consents,consent_data_processing,Consent to Data Processing,boolean,True,Agree to data policy,true,,False
+LIQUIDITY_PROVIDER,Consents,consent_aml_screening,Consent to AML Screening,boolean,True,Authorize checks,true,,False
+LIQUIDITY_PROVIDER,Consents,agree_terms,Agree to Terms of Service,boolean,True,Accept platform ToS,true,,False
+LIQUIDITY_PROVIDER,Consents,electronic_signature,Electronic Signature,string,True,Typed full name,ALEX JOHNSON,,False

@@ -1,0 +1,96 @@
+actor,category,field_key,label,type,required,description,example,options,upload
+CLIENT_SME,Company,legal_name,Legal Entity Name,string,True,Registered legal name,Echosystem Technologies SAS,,False
+CLIENT_SME,Company,trade_name,Trade Name / DBA,string,False,Commercial name,Echotechnology,,False
+CLIENT_SME,Company,legal_form,Legal Form,enum,True,Entity type,SAS,SAS|LLC|C-Corp|S-Corp|GmbH|Ltd|PLC|Sole Proprietorship|Partnership,False
+CLIENT_SME,Company,registration_number,Registration / Company Number,string,True,Company registry number,901797152-1,,False
+CLIENT_SME,Company,tax_id,Tax ID / VAT / NIT / EIN,string,True,Primary tax identifier,NIT 901797152-1,,False
+CLIENT_SME,Company,incorporation_date,Date of Incorporation,date,True,YYYY-MM-DD,2021-04-15,,False
+CLIENT_SME,Company,country,Country,enum,True,ISO 3166-1 alpha-2,CO,US|CO|MX|BR|CL|GB|SG|HK|DE|FR|ES,False
+CLIENT_SME,Company,state_province,State / Province,string,False,Optional region/state,Valle del Cauca,,False
+CLIENT_SME,Company,city,City,string,True,City of registration,Cali,,False
+CLIENT_SME,Company,address_line1,Address Line 1,string,True,Street + number,"Zona América Tower 1, Oficina 401",,False
+CLIENT_SME,Company,address_line2,Address Line 2,string,False,Suite/floor/optional,Parque Industrial,,False
+CLIENT_SME,Company,postal_code,Postal Code / ZIP,string,False,ZIP or postal code,760032,,False
+CLIENT_SME,Company,website,Website,url,False,Official website (https),https://echotechnology.xyz,,False
+CLIENT_SME,Company,industry_code,Industry / NAICS Code,string,True,Industry classification,541511,,False
+CLIENT_SME,Company,employees_count,Number of Employees,integer,False,Headcount,12,,False
+CLIENT_SME,Company,business_description,Business Description,string,True,"Core business, max 500 chars",Blockchain treasury & OTC services,,False
+CLIENT_SME,Contacts,primary_email,Primary Contact Email,email,True,Main onboarding contact,ops@convexo.xyz,,False
+CLIENT_SME,Contacts,primary_phone,Primary Contact Phone,phone,True,E.164 format,+573152812505,,False
+CLIENT_SME,Contacts,support_email,Support / Finance Email,email,False,For AP/AR notices,finance@convexo.xyz,,False
+CLIENT_SME,Representative,rep_full_name,Full Name,string,True,Legal representative full name,William Martinez,,False
+CLIENT_SME,Representative,rep_role,Role / Title,string,True,"Position (CEO, CFO, etc.)",CEO,,False
+CLIENT_SME,Representative,rep_id_type,ID Type,enum,True,Govt ID type,CC,CC|DNI|Passport|SSN|Other,False
+CLIENT_SME,Representative,rep_id_number,ID Number,string,True,Govt-issued ID,1234567890,,False
+CLIENT_SME,Representative,rep_dob,Date of Birth,date,True,YYYY-MM-DD,1990-08-13,,False
+CLIENT_SME,Representative,rep_nationality,Nationality,enum,True,ISO 3166-1 alpha-2,CO,US|CO|MX|BR|CL|GB|SG|HK|DE|FR|ES,False
+CLIENT_SME,Representative,rep_email,Email,email,True,Direct email,wmb81321@gmail.com,,False
+CLIENT_SME,Representative,rep_phone,Phone,phone,True,E.164,+1301501248,,False
+CLIENT_SME,Representative,rep_is_pep,PEP Status,boolean,True,Politically Exposed Person,false,,False
+CLIENT_SME,Representative,rep_authority_document,Proof of Authority (PoA),file,False,Board resolution or PoA,,,True
+CLIENT_SME,Representative,rep_id_document,Government ID,file,True,PDF/JPG/PNG of ID,,,True
+CLIENT_SME,Representative,rep_proof_of_address,Proof of Address,file,True,Utility bill/bank statement ≤3 months,,,True
+CLIENT_SME,Ownership,shareholders,Shareholders (>10%),array,True,"List of shareholders {name,type,percent}","[{name: 'Alice', type: 'Individual', percent: 20}]",,False
+CLIENT_SME,Ownership,ubos,Ultimate Beneficial Owners,array,True,"List of UBOs {name,percent,country}","[{name: 'Bob', percent: 60, country: 'CO'}]",,False
+CLIENT_SME,Ownership,cap_table_document,Cap Table / Share Registry,file,False,Latest shareholder registry,,,True
+CLIENT_SME,Financial:Income,currency,Reporting Currency,enum,True,ISO 4217,USD,USD|EUR|COP|MXN|BRL|ARS,False
+CLIENT_SME,Financial:Income,period_start,Period Start,date,True,YYYY-MM-DD,2024-01-01,,False
+CLIENT_SME,Financial:Income,period_end,Period End,date,True,YYYY-MM-DD,2024-12-31,,False
+CLIENT_SME,Financial:Income,revenue,Revenue / Sales,number,True,Total revenue,1250000.00,,False
+CLIENT_SME,Financial:Income,cogs,COGS,number,False,Direct costs,420000.00,,False
+CLIENT_SME,Financial:Income,operating_expenses,Operating Expenses,number,False,Opex,350000.00,,False
+CLIENT_SME,Financial:Income,depreciation_amortization,Depreciation & Amortization,number,False,Non-cash,15000.00,,False
+CLIENT_SME,Financial:Income,interest_expense,Interest Expense,number,False,Debt servicing,12000.00,,False
+CLIENT_SME,Financial:Income,tax_expense,Income Tax Expense,number,False,Tax cost,18000.00,,False
+CLIENT_SME,Financial:Income,net_income,Net Income,number,True,Profit/loss,220000.00,,False
+CLIENT_SME,Financial:Balance,as_of_date,Balance Sheet Date,date,True,Statement date,2024-12-31,,False
+CLIENT_SME,Financial:Balance,cash_and_equivalents,Cash & Equivalents,number,True,"Cash, stablecoins",250000.00,,False
+CLIENT_SME,Financial:Balance,accounts_receivable,Accounts Receivable,number,True,Outstanding invoices,180000.00,,False
+CLIENT_SME,Financial:Balance,inventory,Inventory,number,False,Goods for sale,90000.00,,False
+CLIENT_SME,Financial:Balance,other_current_assets,Other Current Assets,number,False,Prepaids,15000.00,,False
+CLIENT_SME,Financial:Balance,ppe_net,PPE Net,number,False,"Property, Plant & Equipment",60000.00,,False
+CLIENT_SME,Financial:Balance,intangibles_net,Intangibles Net,number,False,"Goodwill, IP",10000.00,,False
+CLIENT_SME,Financial:Balance,total_assets,Total Assets,number,True,Assets = current + non-current,605000.00,,False
+CLIENT_SME,Financial:Balance,accounts_payable,Accounts Payable,number,True,Supplier payables,90000.00,,False
+CLIENT_SME,Financial:Balance,short_term_debt,Short-Term Debt,number,False,Debt <12 months,20000.00,,False
+CLIENT_SME,Financial:Balance,other_current_liabilities,Other Current Liabilities,number,False,Taxes payable,15000.00,,False
+CLIENT_SME,Financial:Balance,long_term_debt,Long-Term Debt,number,False,Debt >12 months,110000.00,,False
+CLIENT_SME,Financial:Balance,total_liabilities,Total Liabilities,number,True,Current + long-term,235000.00,,False
+CLIENT_SME,Financial:Balance,shareholders_equity,Shareholders’ Equity,number,True,Equity,370000.00,,False
+CLIENT_SME,Financial:Documents,fs_income_statement_pdf,Income Statement (PDF),file,True,Official statement,,,True
+CLIENT_SME,Financial:Documents,fs_balance_sheet_pdf,Balance Sheet (PDF),file,True,Official statement,,,True
+CLIENT_SME,Financial:Documents,bank_statements,Bank Statements (last 3–6 months),file,True,Provide PDFs or CSVs,,,True
+CLIENT_SME,Financial:Documents,tax_return_last_fy,Tax Filing (last FY),file,True,Filed tax return,,,True
+CLIENT_SME,Banking,bank_name,Bank Name,string,True,Primary bank,Bancolombia S.A.,,False
+CLIENT_SME,Banking,bank_country,Bank Country,enum,True,ISO 3166-1,CO,US|CO|MX|BR|CL|GB|SG|HK|DE|FR|ES,False
+CLIENT_SME,Banking,account_holder_name,Account Holder Name,string,True,As per account,Echosystem Technologies SAS,,False
+CLIENT_SME,Banking,account_number,Account Number / IBAN,string,True,IBAN/local format,CO12345678901234567890,,False
+CLIENT_SME,Banking,routing_number,Routing Number,string,False,ABA/CLABE/local,111000025,,False
+CLIENT_SME,Banking,swift_bic,SWIFT/BIC,string,False,8–11 characters,COLOCOBMXXX,,False
+CLIENT_SME,Banking,account_currency,Account Currency,enum,True,ISO 4217,USD,USD|EUR|COP|MXN|BRL|ARS,False
+CLIENT_SME,Banking,bank_letter,Bank Letter / Void Cheque,file,False,Proof of ownership,,,True
+CLIENT_SME,Crypto,evm_address,EVM Wallet Address,address_eth,True,Wallet for USDC,0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,,False
+CLIENT_SME,Crypto,wallet_type,Wallet Type,enum,True,Embedded or External,embedded,embedded|external,False
+CLIENT_SME,Crypto,preferred_chains,Preferred Chains,array,True,Chains for settlement,"[""Base"",""Optimism""]",Ethereum|Base|Optimism|Arbitrum|Polygon|Unichain,False
+CLIENT_SME,Crypto,usdc_network,USDC Network Preference,enum,False,Primary USDC chain,Base,Ethereum|Base|Optimism|Arbitrum|Polygon,False
+CLIENT_SME,Invoice,debtor_legal_name,Debtor Legal Name,string,True,Entity paying invoice,Acme Corp LLC,,False
+CLIENT_SME,Invoice,debtor_tax_id,Debtor Tax ID,string,True,Debtor identifier,EIN 12-3456789,,False
+CLIENT_SME,Invoice,debtor_contact_name,Debtor Contact Name,string,True,Person confirming invoice,Jane Doe,,False
+CLIENT_SME,Invoice,debtor_contact_email,Debtor Contact Email,email,True,For confirmations,ap@acme.com,,False
+CLIENT_SME,Invoice,debtor_wallet_address,Debtor Wallet Address,address_eth,False,If paying on-chain,0x1111111111111111111111111111111111111111,,False
+CLIENT_SME,Invoice,invoice_number,Invoice Number,string,True,Unique invoice,INV-2025-017,,False
+CLIENT_SME,Invoice,po_number,PO Number,string,False,Optional reference,PO-8821,,False
+CLIENT_SME,Invoice,issue_date,Issue Date,date,True,YYYY-MM-DD,2025-08-01,,False
+CLIENT_SME,Invoice,due_date,Due Date,date,True,YYYY-MM-DD,2025-09-30,,False
+CLIENT_SME,Invoice,amount,Amount,number,True,Face value,50000.00,,False
+CLIENT_SME,Invoice,currency,Currency,enum,True,ISO 4217,USD,USD|EUR|COP|MXN|BRL|ARS,False
+CLIENT_SME,Invoice,payment_terms,Payment Terms,enum,True,Net terms,Net-30,Net-15|Net-30|Net-45|Net-60|Custom,False
+CLIENT_SME,Invoice,pdf_upload,Invoice PDF,file,True,Upload official PDF,,,True
+CLIENT_SME,Invoice,supporting_docs,Supporting Docs,file,False,Contracts/delivery notes,,,True
+CLIENT_SME,Invoice,content_hash,Invoice Content Hash,string,False,SHA256/IPFS CID,bafy...,,False
+CLIENT_SME,Invoice,requested_advance_pct,Requested Advance %,integer,True,Advance bps (0–10000),8000,,False
+CLIENT_SME,Invoice,max_discount_bps,Max Discount Rate,integer,True,Monthly bps discount,200,,False
+CLIENT_SME,Consents,consent_data_processing,Consent to Data Processing,boolean,True,Agree to policy,true,,False
+CLIENT_SME,Consents,consent_aml_screening,Consent to AML Screening,boolean,True,Authorize AML checks,true,,False
+CLIENT_SME,Consents,agree_terms,Agree to Terms of Service,boolean,True,Accept ToS,true,,False
+CLIENT_SME,Consents,electronic_signature,Electronic Signature,string,True,Typed full name,WILLIAM MARTINEZ,,False

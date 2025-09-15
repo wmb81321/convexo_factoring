@@ -1,0 +1,35 @@
+actor,category,field_key,label,type,required,description,example,options,upload
+DEBTOR,Company,legal_name,Legal Entity Name,string,True,Debtor company official name,Acme Corp LLC,,False
+DEBTOR,Company,trade_name,Trade Name / DBA,string,False,Commercial name if different,Acme Trading,,False
+DEBTOR,Company,legal_form,Legal Form,enum,False,Entity type,LLC,SAS|LLC|C-Corp|S-Corp|GmbH|Ltd|PLC|Sole Proprietorship|Partnership,False
+DEBTOR,Company,registration_number,Registration Number,string,True,Company registry ID,123456789,,False
+DEBTOR,Company,tax_id,Tax ID / VAT / EIN,string,True,Primary tax identifier,EIN 12-3456789,,False
+DEBTOR,Company,incorporation_date,Date of Incorporation,date,False,YYYY-MM-DD,2018-06-21,,False
+DEBTOR,Company,country,Country,enum,True,Jurisdiction ISO 3166-1,US,US|CO|MX|BR|CL|GB|SG|HK|DE|FR|ES,False
+DEBTOR,Company,state_province,State / Province,string,False,State/Province of registration,NY,,False
+DEBTOR,Company,city,City,string,True,City of registration,New York,,False
+DEBTOR,Company,address_line1,Address Line 1,string,True,Street and number,123 Broadway Ave,,False
+DEBTOR,Company,address_line2,Address Line 2,string,False,Optional suite/floor,Floor 12,,False
+DEBTOR,Company,postal_code,Postal Code / ZIP,string,False,ZIP/Postal code,10012,,False
+DEBTOR,Company,website,Website,url,False,Official site (https),https://acmecorp.com,,False
+DEBTOR,Company,industry_code,Industry / NAICS Code,string,False,Industry classification,541211,,False
+DEBTOR,Contacts,ap_contact_name,AP Contact Name,string,True,Accounts Payable contact,Jane Doe,,False
+DEBTOR,Contacts,ap_contact_email,AP Contact Email,email,True,For invoice confirmations,ap@acme.com,,False
+DEBTOR,Contacts,ap_contact_phone,AP Contact Phone,phone,False,E.164,+12125550123,,False
+DEBTOR,Representative,rep_full_name,Authorized Rep Full Name,string,False,Person authorized to confirm invoices,John Smith,,False
+DEBTOR,Representative,rep_role,Role / Title,string,False,Position,Finance Manager,,False
+DEBTOR,Representative,rep_email,Email,email,False,Direct email,john@acme.com,,False
+DEBTOR,Representative,rep_phone,Phone,phone,False,E.164,+12125559876,,False
+DEBTOR,Repayment,preferred_method,Preferred Repayment Method,enum,True,On-chain USDC or bank transfer,USDC,USDC|Bank Transfer,False
+DEBTOR,Repayment,evm_address,EVM Wallet Address (if USDC),address_eth,False,For on-chain repayment,0x2222222222222222222222222222222222222222,,False
+DEBTOR,Repayment,bank_name,Bank Name,string,False,If bank transfer,Chase Bank,,False
+DEBTOR,Repayment,bank_account_holder,Bank Account Holder Name,string,False,As on bank account,Acme Corp LLC,,False
+DEBTOR,Repayment,bank_account_number,Bank Account / IBAN,string,False,Bank account number,US12345678901234,,False
+DEBTOR,Repayment,bank_routing_number,Bank Routing Number / ABA,string,False,Local bank routing,021000021,,False
+DEBTOR,Repayment,bank_swift,SWIFT/BIC,string,False,Bank identifier,CHASUS33,,False
+DEBTOR,Repayment,account_currency,Repayment Currency,enum,False,ISO 4217 currency,USD,USD|EUR|COP|MXN|BRL|ARS,False
+DEBTOR,Consents,acknowledge_invoice,Acknowledge Invoice Validity,boolean,True,"Confirms invoice amount, due date, and obligation",true,,False
+DEBTOR,Consents,acknowledge_payment_link,Consent to Payment Link,boolean,True,Consent to receive payment reminders/links,true,,False
+DEBTOR,Consents,consent_data_processing,Consent to Data Processing,boolean,True,Agree to data policy,true,,False
+DEBTOR,Consents,agree_terms,Agree to Terms of Service,boolean,True,Accept platform ToS,true,,False
+DEBTOR,Consents,electronic_signature,Electronic Signature,string,True,Typed full name,JANE DOE,,False
